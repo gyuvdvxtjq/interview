@@ -1,0 +1,16 @@
+{
+  "name": "ai-mock-interview",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI 实时语音模拟面试：简历 + GitHub 仓库深挖",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "marked": "^12.0.2",
+    "msedge-tts": "^1.3.4",
+    "pdf-parse": "^1.1.1",
+    "ws": "^8.18.0"
+  }
+}
