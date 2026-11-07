@@ -311,7 +311,7 @@ function buildSystemPrompt(session) {
 const WebSocketLib = require('ws');
 
 function liveUrl() {
-  return `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${CFG.geminiKey}`;
+  return `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${CFG.geminiKey}`;
 }
 
 function flushUserTurn(session, late) {
