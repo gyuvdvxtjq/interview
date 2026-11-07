@@ -25,8 +25,39 @@ const CFG = {
   geminiModel: process.env.GEMINI_MODEL || 'gemini-3.8-live',
   geminiVoice: process.env.GEMINI_VOICE || 'Charon', // Live 引擎男声
   maxUtteranceBytes: 16000 * 2 * 35, // 35 秒上限
+
   interviewMinutes: Number(process.env.INTERVIEW_MINUTES || 15), // 单场面试上限（分钟）
 };
+
+// ---------------- 仓库分析磁盘缓存（同一仓库/模式 12h 内复用） ----------------
+const REPO_CACHE_DIR = path.join(__dirname, '.cache');
+try { fs.mkdirSync(REPO_CACHE_DIR, { recursive: true }); } catch {}
+const REPO_CACHE_TTL = Number(process.env.REPO_CACHE_TTL || 12 * 3600 * 1000);
+function repoCachePath(url, style) {
+  const h = crypto.createHash('sha1').update(url + '|' + style).digest('hex').slice(0, 16);
+  return path.join(REPO_CACHE_DIR, 'repo-' + h + '.json');
+}
+function readRepoCache(p) {
+  try {
+    const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+    if (!j || !j.ts || Date.now() - j.ts > REPO_CACHE_TTL) return null;
+    return j;
+  } catch { return null; }
+}
+function writeRepoCache(p, obj) {
+  try {
+    obj.ts = Date.now();
+    const data = JSON.stringify(obj);
+    if (data.length > 4 * 1024 * 1024) return; // 过大的不落盘
+    fs.writeFileSync(p, data);
+    // 只保留最近 60 个缓存文件
+    const files = fs.readdirSync(REPO_CACHE_DIR).filter((f) => f.endsWith('.json')).map((f) => path.join(REPO_CACHE_DIR, f));
+    if (files.length > 60) {
+      files.map((f) => ({ f, t: (() => { try { return fs.statSync(f).mtimeMs; } catch { return 0; } })() }))
+        .sort((a, b) => a.t - b.t).slice(0, files.length - 60).forEach((x) => { try { fs.rmSync(x.f); } catch {} });
+    }
+  } catch {}
+}
 
 // ---------------- 会话 ----------------
 const sessions = new Map(); // sid -> session
@@ -595,7 +626,7 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 
 const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache, must-revalidate' });
     fs.createReadStream(path.join(PUBLIC_DIR, 'index.html')).pipe(res);
     return;
   }
@@ -639,6 +670,13 @@ const server = http.createServer(async (req, res) => {
         if (payload.githubUrl) {
           const url = parseRepoUrl(payload.githubUrl);
           if (!url) { res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify({ error: 'GitHub 地址没看懂，试试 owner/repo 或完整链接' })); return; }
+          const cachePath = repoCachePath(url, session.style);
+          const cached = readRepoCache(cachePath);
+          if (cached) {
+            session.repoText = cached.repoText || '';
+            session.dossier = cached.dossier || null;
+            console.log('[cache] hit ' + url + ' style=' + session.style + ' dossier=' + !!session.dossier);
+          } else {
           const tmp = path.join(os.tmpdir(), 'repo-' + session.sid);
           await new Promise((resolve, reject) => {
             execFile('git', ['clone', '--depth', '1', url, tmp], {
@@ -669,6 +707,9 @@ const server = http.createServer(async (req, res) => {
             }
           } finally {
             fs.rmSync(tmp, { recursive: true, force: true });
+          }
+          writeRepoCache(cachePath, { repoText: session.repoText, dossier: session.dossier });
+          console.log('[cache] saved ' + url + ' style=' + session.style);
           }
         }
         session.systemPrompt = buildSystemPrompt(session);

@@ -18,3 +18,4 @@ test_report.md
 .DS_Store
 Thumbs.db
 *.bak-*
+.cache/
