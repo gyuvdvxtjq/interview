@@ -354,6 +354,7 @@ select option{background:#0f1521;color:var(--text)}
               <div class="ok" id="dropSuccess">✓ <span id="dropFileName">已选择</span></div>
             </div>
             <input type="file" id="resumeFile" accept=".pdf,.txt,.md" class="hidden">
+            <textarea id="resumeText" rows="3" placeholder="或直接粘贴简历文本（扫描版 PDF 推荐这种方式）" style="margin-top:10px"></textarea>
           </div>
 
           <div class="field">
@@ -692,10 +693,10 @@ $('startBtn').onclick = async () => {
   const btn = $('startBtn'), err = $('prepErr');
   btn.disabled = true; err.style.display = 'none'; err.textContent = '';
   try {
-    const payload = { position: $('position').value.trim(), jd: $('jd').value.trim(), mode: selectedMode(), githubUrl: $('ghUrl').value.trim(), voice: ($('voiceSelect')||{}).value || '', persona: ($('personaSelect')||{}).value || 'strict' };
+    const payload = { position: $('position').value.trim(), jd: $('jd').value.trim(), mode: selectedMode(), githubUrl: $('ghUrl').value.trim(), voice: ($('voiceSelect')||{}).value || '', persona: ($('personaSelect')||{}).value || 'strict', resumeText: (($('resumeText')||{}).value || '').trim() };
     const f = $('resumeFile').files[0];
     if (f) { payload.resumeBase64 = await fileToB64(f); payload.resumeName = f.name; }
-    if (!payload.resumeBase64 && !payload.githubUrl) throw new Error('至少上传简历或填写 GitHub 仓库');
+    if (!payload.resumeBase64 && !payload.resumeText && !payload.githubUrl) throw new Error('至少上传简历、粘贴简历文本或填写 GitHub 仓库');
     // 步骤动画
     $('prepSteps').style.display = 'block';
     const steps = [...document.querySelectorAll('.steps .step')];
@@ -710,6 +711,7 @@ $('startBtn').onclick = async () => {
     if (!res.ok) throw new Error(j.error || '准备失败');
     steps.forEach((s, i) => { s.classList.remove('active'); if (i < 3) s.classList.add('completed'); });
     sid = j.sid;
+    if (j.summary && j.summary.indexOf('扫描版') >= 0) toast('PDF 文字过少，可能是扫描版；已按现有文本继续');
     steps[3].classList.add('completed');
     setTimeout(() => enterRoom(), 350);
   } catch (e) {

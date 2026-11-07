@@ -20,6 +20,7 @@ const CFG = {
   llmKey: process.env.LLM_KEY || '',
   llmModel: process.env.LLM_MODEL || 'cn:glm-5.3-flash',
   whisperUrl: process.env.WHISPER_URL || 'http://127.0.0.1:8081/inference',
+  mineruUrl: process.env.MINERU_URL || '', // 可选：自建 MinerU API（PDF 复杂排版/扫描件）
   ttsVoice: process.env.TTS_VOICE || 'zh-CN-YunxiNeural', // 男声面试官（cascade 兜底用）
   geminiKey: process.env.GEMINI_KEY || '',
   geminiModel: process.env.GEMINI_MODEL || 'gemini-3.8-live',
@@ -28,6 +29,18 @@ const CFG = {
 
   interviewMinutes: Number(process.env.INTERVIEW_MINUTES || 15), // 单场面试上限（分钟）
 };
+
+// ---------------- 繁体转简体（字幕显示） ----------------
+const T2S_PAIRS = '這这說说對对們们會会時时間间開开關关實实現现麼么樣样讓让發发個个為为與与來来後后過过還还問问題题驗验經经歷历點点專专業业項项處处東东車车長长門门馬马鳥鸟魚鱼語语話话讀读寫写聽听覺觉頭头體体學学動动態态記记憶忆認认識识設设計计環环據据庫库網网絡络線线圖图檔档傳传輸输數数邏逻輯辑層层級级優优穩稳壓压測测試试錯错誤误見见觀观論论決决團团队队協协溝沟風风險险難难場场標标准准確确細细节节講讲請请誰谁嗎吗壞坏軟软產产品品務务員员區区應应該该幾几運运營营銷销權权種种類类邊边際际將将歸归階阶億亿万万週周歲岁錢钱銀银稅税預预約约額额雙双單单擊击採采購购簽签執执監监裝装註注冊册譯译轉转换换於于從从屬属畢毕裡里麵面髮发幹干隻只臺台迴回託托遊游儘尽盡尽僅仅優优兒儿兩两剛刚創创別别劇剧勞劳勢势衛卫變变號号葉叶嘆叹嘗尝啟启響响園园圍围國国圓圆聖圣堅坚壇坛聲声殼壳備备復复夠够奪夺奮奋獎奖奧奥婦妇媽妈嬰婴孫孙寧宁寶宝宮宫寬宽賓宾審审憲宪導导壽寿岡冈島岛峽峡崗岗嶺岭幣币帥帅師师帳帐帶带幫帮廣广莊庄慶庆廠厂廳厅廢废彈弹強强當当錄录徹彻徑径憂忧懷怀總总戀恋惡恶惱恼愛爱憐怜懇恳應应懶懒懸悬懼惧戰战戲戏戶户拋抛捨舍掃扫掛挂掙挣搶抢報报擔担擬拟擁拥擇择擋挡擠挤擺摆攜携攝摄攤摊敗败敵敌斷断曉晓暫暂術术機机殺杀雜杂權权條条楊杨極极構构槍枪樞枢橋桥檢检歡欢歐欧殘残毀毁氣气沒没滅灭潔洁濟济灣湾濕湿滿满漁渔漢汉漲涨漸渐潛潜澤泽濃浓濁浊灑洒烏乌無无煉炼煙烟煩烦熱热燈灯燒烧燦灿爐炉爭争牆墙獨独獲获現现畫画異异疊叠礎础禦御積积稱称窮穷竊窃筆笔節节範范築筑簡简籃篮籌筹糧粮糾纠紀纪紅红純纯紙纸紛纷緊紧緒绪練练組组終终絕绝統统絲丝維维綱纲編编緩缓縱纵縮缩績绩織织繳缴繼继續续罷罢義义習习聞闻聯联職职肅肃腸肠膚肤臉脸鐘钟鐵铁銀银鋒锋鋪铺錄录鍵键鎖锁鎮镇鏡镜閉闭閒闲閱阅闆板陣阵陽阳隊队隨随隱隐雖虽雞鸡離离雲云電电靈灵靜静頁页頂顶項项順顺須须頓顿領领顏颜願愿顯显飛飞養养館馆駐驻駕驾騰腾驅驱驚惊鬥斗鳴鸣麗丽麥麦黃黄齊齐齒齿龍龙龜龟賣卖買买貴贵資资賞赏賠赔質质購购賽赛贊赞趕赶趨趋蹤踪輪轮輸输辦办農农連连進进達达違违遠远適适遷迁選选遺遗郵邮鄉乡鄰邻鄭郑釋释針针釣钓鈴铃鉛铅銅铜鋼钢錫锡錦锦鑄铸鑰钥閃闪悶闷閣阁闊阔闖闯闡阐闢辟闕阙陰阴陳陈陸陆隸隶霧雾頻频顆颗額额顧顾飯饭飲饮飽饱飾饰駛驶騎骑騙骗髒脏鬆松鬚须鬧闹鮮鲜鯉鲤鯨鲸鳳凤鴨鸭鵝鹅鷹鹰鹽盐黨党點点';
+function toSimplified(text) {
+  if (!text) return text;
+  let out = '';
+  for (const ch of String(text)) {
+    const i = T2S_PAIRS.indexOf(ch);
+    if (i >= 0 && i % 2 === 0) out += T2S_PAIRS[i + 1]; else out += ch;
+  }
+  return out;
+}
 
 // ---------------- 仓库分析磁盘缓存（同一仓库/模式 12h 内复用） ----------------
 const REPO_CACHE_DIR = path.join(__dirname, '.cache');
@@ -269,6 +282,19 @@ function dossierPrompt(repoText, codeMode) {
   }
   return '你是面试官的助手。下面是候选人 GitHub 仓库的真实代码，请写一份"面谈前速记"，只输出 JSON（不要代码块以外的内容）：\n{\n  "projectSummary": "这个仓库解决什么业务问题、业务定位、技术栈，说人话，120字内",\n  "highlights": ["3-4 条值得当面聊的技术点（业务/架构层面）"],\n  "topics": [{"t": "值得验证的话题", "why": "为什么值得问（业务或风险角度）", "expect": "真做过的人能说出哪些具体内容"}],\n  "traps": ["容易注水的说法，3 条以内"]\n}\ntopics 给 3-5 个，全部用业务和架构语言，禁止出现任何文件名、函数名、行号。仓库代码：\n' + repoText;
 }
+async function mineruParse(buf, name) {
+  if (!CFG.mineruUrl) return null;
+  const fd = new FormData();
+  fd.append('files', new Blob([buf], { type: 'application/pdf' }), name || 'resume.pdf');
+  const res = await fetch(CFG.mineruUrl, { method: 'POST', body: fd, signal: AbortSignal.timeout(120000) });
+  if (!res.ok) throw new Error('MinerU HTTP ' + res.status);
+  const text = await res.text();
+  try {
+    const j = JSON.parse(text);
+    return String(j.markdown || j.md || j.text || (j.data && j.data.markdown) || '').slice(0, 20000);
+  } catch { return text.slice(0, 20000); }
+}
+
 async function buildDossier(session, repoText) {
   const codeMode = session.style === 'code';
   const first = codeMode ? repoText.slice(0, 80000) : repoText.slice(0, 40000);
@@ -350,7 +376,7 @@ function buildSystemPrompt(session) {
        '- 不提文件名、函数名、行号，不说"我看到你代码里……"，你确实没看过。',
        '- 简历和简介里没有的具体数字和细节不要替对方编，用开放问法让他自己说。',
        '- 不背八股：问了也要贴着项目场景问。'].join('\n');
-  const output = '输出纪律（重要）：你的回复会被直接朗读成语音——禁止任何 markdown 符号、列表、emoji、括号标注；单次回复一般 1~3 句话，不超过 80 字。';
+  const output = '输出纪律（重要）：始终使用简体中文，不要繁体字；你的回复会被直接朗读成语音——禁止任何 markdown 符号、列表、emoji、括号标注；单次回复一般 1~3 句话，不超过 80 字。候选人说话时可能中途停顿组织语言，不要急着抢话，等对方语义完整或停顿明显后再回应；如果只是短暂停顿，保持安静等待。';
   let p = [head, modeDesc, discipline, output].join('\n\n');
 
   if (session.resumeText) p += '\n\n【候选人简历】\n' + session.resumeText.slice(0, 8000);
@@ -394,7 +420,8 @@ function flushUserTurn(session, late) {
   if (!t) return; // 没内容就什么都不做，避免把"已发过"的标记提前置位
   session.live.inText = '';
   session.live.userFlushed = true;
-  const entry = { role: 'user', text: t, t: Date.now() };
+  const t2 = toSimplified(t);
+  const entry = { role: 'user', text: t2, t: Date.now() };
   if (late) {
     // 转写比 AI 回复晚到：在转写记录里插到最后一条 AI 之前，保证问答顺序正确
     let i = session.transcript.length - 1;
@@ -403,7 +430,7 @@ function flushUserTurn(session, late) {
   } else {
     session.transcript.push(entry);
   }
-  session.ws?.send(JSON.stringify({ type: 'add_transcript', role: 'user', text: t, insertBeforeAi: !!late }));
+  session.ws?.send(JSON.stringify({ type: 'add_transcript', role: 'user', text: t2, insertBeforeAi: !!late }));
   console.log('[live] 用户转写 ' + t.length + ' 字' + (late ? '（迟到）' : '') + ' sid=' + session.sid);
 }
 
@@ -429,26 +456,35 @@ function startLive(session, opts = {}) {
   }, 12000);
 
   lws.on('open', () => {
-    const buildSetup = (withThinking) => {
+    const buildSetup = (cfg) => {
+      const c = cfg || { thinking: true, vad: true };
       const generationConfig = {
         responseModalities: ['AUDIO'],
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
       };
-      if (withThinking) generationConfig.thinkingConfig = { thinkingBudget: 2048, includeThoughts: false };
-      return {
-        setup: {
-          model: `models/${CFG.geminiModel}`,
-          generationConfig,
-          systemInstruction: { parts: [{ text: promptText }] },
-          inputAudioTranscription: {},
-          outputAudioTranscription: {},
-          contextWindowCompression: { slidingWindow: {} },
-        },
+      if (c.thinking) generationConfig.thinkingConfig = { thinkingBudget: 2048, includeThoughts: false };
+      const setup = {
+        model: `models/${CFG.geminiModel}`,
+        generationConfig,
+        systemInstruction: { parts: [{ text: promptText }] },
+        inputAudioTranscription: {},
+        outputAudioTranscription: {},
+        contextWindowCompression: { slidingWindow: {} },
       };
+      if (c.vad) {
+        setup.realtimeInputConfig = {
+          automaticActivityDetection: {
+            silenceDurationMs: Number(process.env.VAD_SILENCE_MS || 1800),
+            prefixPaddingMs: 400,
+            endOfSpeechSensitivity: 'END_SENSITIVITY_LOW',
+          },
+        };
+      }
+      return { setup };
     };
-    session.live.thinkingTried = true;
+    session.live.cfg = { thinking: true, vad: true };
     session.live.buildSetup = buildSetup;
-    lws.send(JSON.stringify(buildSetup(true)));
+    lws.send(JSON.stringify(buildSetup(session.live.cfg)));
   });
 
   lws.on('message', (raw, isBin) => {
@@ -474,12 +510,19 @@ function startLive(session, opts = {}) {
       }
       return;
     }
-    if (msg.error && !session.live.ready && session.live.thinkingTried) {
+    if (msg.error && !session.live.ready && session.live.cfg) {
       const es = JSON.stringify(msg).toLowerCase();
-      if (/thinking|invalid_argument|unknown name|unknown field|unsupported/.test(es)) {
-        console.log('[live] thinkingConfig 不受支持，重发无 thinking 的 setup');
-        session.live.thinkingTried = false;
-        try { lws.send(JSON.stringify(session.live.buildSetup(false))); } catch {}
+      const bad = /invalid_argument|unknown name|unknown field|unsupported|not supported/.test(es);
+      if (bad && session.live.cfg.thinking) {
+        console.log('[live] thinkingConfig 不受支持，重发（无 thinking）');
+        session.live.cfg.thinking = false;
+        try { lws.send(JSON.stringify(session.live.buildSetup(session.live.cfg))); } catch {}
+        return;
+      }
+      if (bad && session.live.cfg.vad) {
+        console.log('[live] VAD 配置不受支持，重发（默认 VAD）');
+        session.live.cfg.vad = false;
+        try { lws.send(JSON.stringify(session.live.buildSetup(session.live.cfg))); } catch {}
         return;
       }
     }
@@ -508,9 +551,10 @@ function startLive(session, opts = {}) {
       }
     }
     if (sc.outputTranscription?.text) {
-      session.live.outText += sc.outputTranscription.text;
+      const piece = toSimplified(sc.outputTranscription.text);
+      session.live.outText += piece;
       session.live.aiOpen = true;
-      session.ws?.send(JSON.stringify({ type: 'ai_delta', text: sc.outputTranscription.text }));
+      session.ws?.send(JSON.stringify({ type: 'ai_delta', text: piece }));
     }
     if (sc.turnComplete) {
       flushUserTurn(session);
@@ -528,6 +572,23 @@ function startLive(session, opts = {}) {
   lws.on('close', (code, reason) => {
     clearTimeout(readyTimer);
     console.log(`[live] ws closed sid=${session.sid} code=${code} reason=${String(reason).slice(0, 100)} ready=${live.ready} mode=${live.mode}`);
+    // setup 被拒绝（非法配置）：逐步降级重试
+    if (!live.ready && session.live && session.live.cfg && /invalid value|invalid argument/i.test(String(reason))) {
+      if (session.live.cfg.vad) {
+        session.live.cfg.vad = false;
+        console.log('[live] 配置被拒，去掉 VAD 重试');
+        try { lws.removeAllListeners(); } catch {}
+        setTimeout(() => startLive(session), 300);
+        return;
+      }
+      if (session.live.cfg.thinking) {
+        session.live.cfg.thinking = false;
+        console.log('[live] 配置被拒，去掉 thinking 重试');
+        try { lws.removeAllListeners(); } catch {}
+        setTimeout(() => startLive(session), 300);
+        return;
+      }
+    }
     if (live.closed) return;
     if (session.live === live) session.live = null;
     if (live.reconnects < 3 && !session.interviewDone && live.mode !== 'tutor') {
@@ -654,8 +715,12 @@ const server = http.createServer(async (req, res) => {
           const buf = Buffer.from(payload.resumeBase64, 'base64');
           const name = payload.resumeName.toLowerCase();
           if (name.endsWith('.pdf')) {
-            const j = await pdfParse(buf);
-            payload.resumeText = (j.text || '').replace(/\n{3,}/g, '\n\n').slice(0, 12000);
+            let text = '';
+            try { const m = await mineruParse(buf, payload.resumeName); if (m && m.trim()) { text = m; console.log('[mineru] parsed chars=' + m.length); } }
+            catch (e) { console.log('[mineru] fallback pdf-parse: ' + e.message); }
+            if (!text) { const j = await pdfParse(buf); text = j.text || ''; }
+            payload.resumeText = text.replace(/\n{3,}/g, '\n\n').slice(0, 12000);
+            if (payload.resumeText.trim().length < 80) payload.resumeWeak = true;
           } else {
             payload.resumeText = buf.toString('utf8').slice(0, 12000);
           }
@@ -718,7 +783,8 @@ const server = http.createServer(async (req, res) => {
         { role: 'system', content: session.systemPrompt },
         { role: 'user', content: '（候选人刚刚上线坐好，请开始面试：一句简短的打招呼 + 请对方先做个自我介绍。直接输出要说的话。）' },
       ], { maxTokens: 150, temperature: 0.8 })).trim();
-        const summary = session.dossier ? `项目分析完成：${session.dossier.projectSummary || ''}` : (session.resumeText ? '简历解析完成' : '');
+        let summary = session.dossier ? `项目分析完成：${session.dossier.projectSummary || ''}` : (session.resumeText ? '简历解析完成' : '');
+        if (payload.resumeWeak) summary += '；PDF 提取文字过少，可能是扫描版，建议在简历框粘贴文本';
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ sid: session.sid, summary }));
     } catch (e) {
@@ -815,7 +881,8 @@ function buildTutorPrompt(session) {
     '- 明确区分"事实"和"你的判断"；不确定就说不确定，绝不编造。',
     '- 他答错或概念混淆时直接指出，不要附和；但要说清楚为什么错、正确的是什么。',
     '- 讲完一个点，可以反问一句检查他是否真的懂了。',
-    '- 语音输出：单次 2~4 句话，不超过 120 字；禁止 markdown、列表、emoji、括号说明。',
+    '- 语音输出：始终使用简体中文，不要繁体字；单次 2~4 句话，不超过 120 字；禁止 markdown、列表、emoji、括号说明。',
+    '- 对方可能在思考中途停顿，不要抢话，等对方说完再回应。',
   ];
   if (session.repoText) {
     parts.push('', '【候选人仓库真实代码（节选）】', session.repoText.slice(0, 50000));
@@ -864,7 +931,7 @@ function buildReportPrompt(session) {
     '第二行只写 技术深度：X/100，表达清晰：X/100，抗追问：X/100，项目真实感：X/100',
     '空一行后输出 markdown 报告正文：# 模拟面试复盘报告',
     '正文包含：总体评价（一段话，直接点出最致命的问题）、亮点（列表）、暴露的问题（列表，引用原话）、逐题点评（每条：问：原题 → 答：要点 → 评分：X/10 → 问题：错在哪 → 更好的答法：可直接套用的一句）、改进建议（按优先级排序）、如果重来一次（3 条最关键的动作）。',
-    '全部中文，直接给候选人看。',
+    '全部使用简体中文（不要繁体字），直接给候选人看。',
   ];
   if (session.position) parts.push('', '【目标岗位】' + session.position);
   if (session.jd) parts.push('', '【岗位 JD】' + session.jd.slice(0, 2000));
