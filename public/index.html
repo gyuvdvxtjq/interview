@@ -698,7 +698,7 @@ $('startBtn').onclick = async () => {
     if (!payload.resumeBase64 && !payload.githubUrl) throw new Error('至少上传简历或填写 GitHub 仓库');
     // 步骤动画
     $('prepSteps').style.display = 'block';
-    const steps = [...document.querySelectorAll('.progress-step')];
+    const steps = [...document.querySelectorAll('.steps .step')];
     steps.forEach(s => s.classList.remove('active', 'completed'));
     let si = 0; steps[0].classList.add('active');
     const adv = setInterval(() => {
