@@ -380,13 +380,52 @@ async function buildDossier(session, repoText) {
   return ask(second);
 }
 
+function closeJsonPartial(str) {
+  let inStr = false, esc = false;
+  const stack = [];
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i];
+    if (esc) { esc = false; continue; }
+    if (c === '\\') { esc = true; continue; }
+    if (c === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (c === '{' || c === '[') stack.push(c);
+    else if (c === '}' || c === ']') stack.pop();
+  }
+  let out = str;
+  if (inStr) { if (esc) out = out.slice(0, -1); out += '"'; }
+  if (!stack.length) return null;
+  let tail = '';
+  for (let i = stack.length - 1; i >= 0; i--) tail += stack[i] === '{' ? '}' : ']';
+  return out + tail;
+}
+function repairJson(text) {
+  let s = String(text).trim();
+  s = s.replace(/,\s*([}\]])/g, '$1');
+  const tries = [s];
+  const steps = [];
+  for (let cut = 20; cut < s.length; cut += 20) steps.push(cut);
+  for (const cut of steps) {
+    const p = s.slice(0, s.length - cut).replace(/,\s*$/, '').replace(/[:\s]+$/, '');
+    const fixed = closeJsonPartial(p);
+    if (fixed) tries.push(fixed);
+  }
+  for (const t of tries) { try { return JSON.parse(t); } catch {} }
+  return null;
+}
 function extractJson(text) {
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   const raw = fence ? fence[1] : text;
   const start = raw.indexOf('{');
-  const end = raw.lastIndexOf('}');
-  if (start < 0 || end < 0) throw new Error('no json');
-  return JSON.parse(raw.slice(start, end + 1));
+  if (start < 0) throw new Error('no json');
+  const sliced = raw.slice(start);
+  const end = sliced.lastIndexOf('}');
+  const candidate = end >= 0 ? sliced.slice(0, end + 1) : sliced;
+  try { return JSON.parse(candidate); } catch (e) {
+    const repaired = repairJson(candidate);
+    if (repaired) { console.log('[dossier] JSON 自动修复成功'); return repaired; }
+    throw e;
+  }
 }
 
 // ---------------- 音色 / 角色预设 ----------------
@@ -760,6 +799,22 @@ async function handleUtteranceEnd(session) {
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
 const server = http.createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/api/health') {
+    let cacheCount = 0;
+    try { cacheCount = fs.readdirSync(REPO_CACHE_DIR).filter((f) => f.endsWith('.json')).length; } catch {}
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify({
+      ok: true,
+      uptimeSec: Math.floor(process.uptime()),
+      sessions: sessions.size,
+      rssMB: Math.round(process.memoryUsage().rss / 1048576),
+      repoCache: cacheCount,
+      mineru: CFG.mineruKey ? 'official' : (CFG.mineruUrl ? 'self' : 'off'),
+      model: CFG.geminiModel,
+      vadSilenceMs: Number(process.env.VAD_SILENCE_MS || 1800),
+    }));
+    return;
+  }
   if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache, must-revalidate' });
     fs.createReadStream(path.join(PUBLIC_DIR, 'index.html')).pipe(res);
@@ -1074,7 +1129,7 @@ wss.on('connection', (ws, req) => {
           // Live 模式：连续音频流直通 Gemini（它自己做 VAD 和打断）
           if (session.live?.ready) {
             session.live.fwd = (session.live.fwd || 0) + 1;
-            if (session.live.fwd === 1 || session.live.fwd % 100 === 0) console.log(`[live] 已转发 ${session.live.fwd} 帧音频 sid=${session.sid}`);
+            if (session.live.fwd === 1 || session.live.fwd % 1000 === 0) console.log(`[live] 已转发 ${session.live.fwd} 帧音频 sid=${session.sid}`);
             session.live.ws?.send(JSON.stringify({ realtimeInput: { audio: { mimeType: 'audio/pcm;rate=16000', data: Buffer.from(data).toString('base64') } } }));
           } else {
             console.log('[live] 丢弃音频帧（live 未 ready）sid=' + session.sid);
