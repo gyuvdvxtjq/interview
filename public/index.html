@@ -3,640 +3,656 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI 模拟面试 - 智能面试训练平台</title>
+<meta name="theme-color" content="#0b0f17">
+<title>MockAI 极客面试官 · 实时语音模拟面试</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <style>
 :root{
-  --bg:#ffffff;--bg-secondary:#f8fafc;--bg-tertiary:#f1f5f9;
-  --panel:#ffffff;--line:#e2e8f0;--line2:#cbd5e1;
-  --text:#0f172a;--text-secondary:#475569;--dim:#64748b;
-  --acc:#6366f1;--acc-hover:#4f46e5;--acc-light:#eef2ff;
-  --ok:#059669;--ok-light:#ecfdf5;
-  --warn:#d97706;--warn-light:#fffbeb;
-  --err:#dc2626;--err-light:#fef2f2;
-  --radius-sm:8px;--radius:12px;--radius-lg:16px;--radius-xl:24px;
-  --shadow-xs:0 1px 2px rgba(0,0,0,.04);
-  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
-  --shadow:0 4px 6px rgba(0,0,0,.04),0 2px 4px rgba(0,0,0,.03);
-  --shadow-lg:0 10px 15px rgba(0,0,0,.05),0 4px 6px rgba(0,0,0,.03);
-  --shadow-xl:0 20px 25px rgba(0,0,0,.06),0 10px 10px rgba(0,0,0,.02);
+  --bg:#0b0f17;--bg2:#0d131d;--panel:#0f1521;--card:#111927;--card2:#0d1420;
+  --line:#1c2739;--line2:#26364e;
+  --text:#e8eef7;--dim:#8fa0b8;--faint:#5d6f88;
+  --acc:#22d3ee;--acc2:#38bdf8;--violet:#a78bfa;--accSoft:rgba(34,211,238,.10);
+  --ok:#34d399;--okSoft:rgba(52,211,153,.12);
+  --warn:#fbbf24;--warnSoft:rgba(251,191,36,.12);
+  --err:#f87171;--errSoft:rgba(248,113,113,.12);
+  --radius-sm:10px;--radius:14px;--radius-lg:18px;--radius-xl:24px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3);
+  --shadow:0 8px 30px rgba(0,0,0,.35);
+  --shadow-lg:0 20px 60px rgba(0,0,0,.45);
+  --glow:0 0 0 1px rgba(34,211,238,.25),0 8px 30px rgba(34,211,238,.12);
   --transition:all .2s cubic-bezier(.4,0,.2,1);
-  --transition-slow:all .3s cubic-bezier(.4,0,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{background:
+  radial-gradient(900px 500px at 15% -10%, rgba(34,211,238,.07), transparent 60%),
+  radial-gradient(800px 500px at 85% 0%, rgba(167,139,250,.06), transparent 55%),
+  var(--bg);
+  color:var(--text);font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh}
 .view{display:none;min-height:100vh}
 .view.active{display:block}
-button{font-family:inherit;cursor:pointer;border:none;font-weight:500;transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;gap:8px}
-.btn-primary{background:var(--acc);color:#fff;padding:12px 24px;font-size:14px;border-radius:var(--radius);box-shadow:var(--shadow-sm)}
-.btn-primary:hover{background:var(--acc-hover);box-shadow:var(--shadow)}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed}
-.btn-secondary{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:12px 24px;font-size:14px;border-radius:var(--radius)}
-.btn-secondary:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-light)}
-.btn-danger{background:var(--err);color:#fff;padding:10px 20px;font-size:13px;border-radius:var(--radius-sm)}
-.btn-danger:hover{background:#b91c1c}
-.btn-icon{width:40px;height:40px;padding:0;border-radius:var(--radius-sm);background:var(--panel);border:1px solid var(--line)}
+button{font-family:inherit;cursor:pointer;border:none;font-weight:600;transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:linear-gradient(135deg,#22d3ee,#3b82f6);color:#04121c;padding:12px 26px;font-size:14px;border-radius:var(--radius);box-shadow:0 6px 24px rgba(34,211,238,.25)}
+.btn-primary:hover{filter:brightness(1.08);box-shadow:0 8px 30px rgba(34,211,238,.35);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-secondary{background:var(--card);border:1px solid var(--line2);color:var(--text);padding:11px 20px;font-size:13.5px;border-radius:var(--radius)}
+.btn-secondary:hover{border-color:var(--acc);color:var(--acc);background:var(--card2)}
+.btn-danger{background:var(--errSoft);border:1px solid rgba(248,113,113,.35);color:var(--err);padding:10px 18px;font-size:13px;border-radius:var(--radius-sm)}
+.btn-danger:hover{background:rgba(248,113,113,.2)}
+.btn-icon{width:40px;height:40px;border-radius:var(--radius-sm);background:var(--card);border:1px solid var(--line2);color:var(--text)}
 .btn-icon:hover{border-color:var(--acc);color:var(--acc)}
-input[type=text],textarea{width:100%;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;font-size:14px;color:var(--text);outline:none;font-family:inherit;transition:var(--transition)}
-input:focus,textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
-input::placeholder,textarea::placeholder{color:#94a3b8}
+input[type=text],textarea,select{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius);padding:12px 15px;font-size:14px;color:var(--text);outline:none;font-family:inherit;transition:var(--transition)}
+input:focus,textarea:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+input::placeholder,textarea::placeholder{color:var(--faint)}
+select option{background:#0f1521;color:var(--text)}
 .hidden{display:none!important}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
 
-/* Navigation */
-.nav{position:fixed;top:0;left:0;right:0;height:64px;background:rgba(255,255,255,.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);z-index:100;display:flex;align-items:center;padding:0 24px}
-.nav-inner{max-width:1200px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{display:flex;align-items:center;gap:12px;font-weight:700;font-size:18px;color:var(--text);text-decoration:none}
-.nav-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--acc),#8b5cf6);display:flex;align-items:center;justify-content:center}
-.nav-links{display:flex;align-items:center;gap:8px}
-.nav-link{padding:8px 16px;font-size:14px;color:var(--text-secondary);text-decoration:none;border-radius:var(--radius-sm);transition:var(--transition)}
-.nav-link:hover{color:var(--text);background:var(--bg-secondary)}
+/* Nav */
+.nav{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-inner{max-width:1320px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.01em;white-space:nowrap}
+.brand-logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#22d3ee,#6366f1);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(34,211,238,.3)}
+.tabs{display:flex;gap:4px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:99px;padding:4px}
+.tab{padding:7px 16px;border-radius:99px;background:transparent;color:var(--dim);font-size:13px;font-weight:600;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{background:linear-gradient(135deg,rgba(34,211,238,.18),rgba(99,102,241,.18));color:var(--acc);box-shadow:inset 0 0 0 1px rgba(34,211,238,.25)}
+.nav-spacer{flex:1}
+.online{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--dim);white-space:nowrap}
+.online .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
 
-/* Hero Section */
-.hero{padding:140px 24px 80px;text-align:center;max-width:800px;margin:0 auto}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:var(--acc-light);color:var(--acc);font-size:13px;font-weight:600;border-radius:99px;margin-bottom:24px}
-.hero-title{font-size:48px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-bottom:20px;background:linear-gradient(135deg,var(--text) 0%,var(--acc) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero-subtitle{font-size:18px;color:var(--text-secondary);line-height:1.7;margin-bottom:40px;max-width:600px;margin-left:auto;margin-right:auto}
-.hero-features{display:flex;justify-content:center;gap:24px;margin-bottom:48px;flex-wrap:wrap}
-.hero-feature{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-secondary)}
-.hero-feature svg{width:18px;height:18px;color:var(--ok)}
+/* Setup */
+#view-setup{padding:40px 24px 80px}
+.wrap{max-width:1180px;margin:0 auto}
+.hero{text-align:center;margin-bottom:36px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;background:var(--accSoft);border:1px solid rgba(34,211,238,.2);color:var(--acc);font-size:12.5px;font-weight:600;margin-bottom:18px}
+.hero h1{font-size:38px;line-height:1.15;letter-spacing:-.03em;font-weight:800;margin-bottom:12px}
+.hero h1 .grad{background:linear-gradient(100deg,#22d3ee,#818cf8 55%,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--dim);font-size:15.5px;max-width:660px;margin:0 auto}
+.layout{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;align-items:start}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,0)) ,var(--card);border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow);padding:26px}
+.card + .card{margin-top:20px}
+.card-title{font-size:15px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.card-title .num{width:22px;height:22px;border-radius:7px;background:var(--accSoft);color:var(--acc);font-size:11.5px;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'JetBrains Mono',monospace}
+.card-desc{font-size:12.5px;color:var(--faint);margin-bottom:18px;line-height:1.6}
+.field{margin-bottom:16px}
+.field-label{display:block;font-size:12.5px;font-weight:600;color:var(--dim);margin-bottom:7px;letter-spacing:.02em}
+.field-label .opt{color:var(--faint);font-weight:500}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.drop{border:1px dashed var(--line2);border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:14px;cursor:pointer;background:var(--bg2);transition:var(--transition)}
+.drop:hover{border-color:var(--acc);background:rgba(34,211,238,.04)}
+.drop .ic{width:38px;height:38px;border-radius:10px;background:var(--accSoft);color:var(--acc);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.drop b{display:block;font-size:13.5px;font-weight:600}
+.drop span{font-size:12px;color:var(--faint)}
+.drop .ok{margin-left:auto;font-size:12px;color:var(--ok);font-weight:600;display:none}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode-card{border:1px solid var(--line2);border-radius:var(--radius);padding:14px 16px;cursor:pointer;background:var(--bg2);transition:var(--transition)}
+.mode-card:hover{border-color:var(--line2);background:var(--card2)}
+.mode-card.selected{border-color:rgba(34,211,238,.45);background:rgba(34,211,238,.07);box-shadow:inset 0 0 0 1px rgba(34,211,238,.12)}
+.mode-card b{display:block;font-size:13.5px;margin-bottom:3px}
+.mode-card span{font-size:11.5px;color:var(--faint);line-height:1.5}
+.mic-test{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg2)}
+.mic-bars{display:flex;gap:3px;align-items:flex-end;height:26px}
+.mic-bars i{width:4px;border-radius:2px;background:var(--acc);height:3px;transition:height .12s ease;opacity:.55}
+.mic-status{font-size:12px;color:var(--faint);margin-top:5px}
+.actions{display:flex;align-items:center;gap:14px;margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+.actions .hint{font-size:12px;color:var(--faint)}
+.steps{display:none;margin-top:18px}
+.step{display:flex;align-items:center;gap:12px;padding:11px 0;font-size:13px;color:var(--dim);border-bottom:1px solid rgba(255,255,255,.04)}
+.step:last-child{border-bottom:none}
+.step .d{width:26px;height:26px;border-radius:50%;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.step.doing .d{border-color:var(--acc);color:var(--acc);animation:pulse 1.2s infinite}
+.step.done .d{background:var(--ok);border-color:var(--ok);color:#052e22}
+@keyframes pulse{50%{opacity:.45}}
+.err{margin-top:14px;font-size:13px;color:var(--err);background:var(--errSoft);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius-sm);padding:11px 14px;display:none}
 
-/* Setup Card */
-.setup-card{max-width:640px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);padding:40px}
-.card-header{margin-bottom:32px}
-.card-title{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
-.card-subtitle{color:var(--text-secondary);font-size:15px}
-.form-group{margin-bottom:24px}
-.form-label{display:block;font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px}
-.form-hint{font-size:13px;color:var(--dim);margin-top:6px}
-.form-optional{font-weight:400;color:var(--dim);font-size:13px}
-.drop-zone{border:2px dashed var(--line2);border-radius:var(--radius);padding:32px;text-align:center;cursor:pointer;transition:var(--transition);background:var(--bg-secondary)}
-.drop-zone:hover,.drop-zone.over{border-color:var(--acc);background:var(--acc-light)}
-.drop-zone-icon{width:48px;height:48px;margin:0 auto 16px;color:var(--dim)}
-.drop-zone-title{font-weight:600;font-size:15px;margin-bottom:4px}
-.drop-zone-desc{font-size:13px;color:var(--dim)}
-.drop-zone-success{display:none;align-items:center;justify-content:center;gap:8px;color:var(--ok);font-weight:600;margin-top:12px}
-.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.mode-card{border:1px solid var(--line);border-radius:var(--radius);padding:20px;cursor:pointer;transition:var(--transition);background:var(--panel)}
-.mode-card:hover{border-color:var(--acc);box-shadow:var(--shadow-sm)}
-.mode-card.selected{border-color:var(--acc);background:var(--acc-light);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
-.mode-card-title{font-weight:600;font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
-.mode-card-desc{font-size:13px;color:var(--text-secondary);line-height:1.6}
-.submit-section{display:flex;align-items:center;gap:16px;margin-top:32px;padding-top:32px;border-top:1px solid var(--line)}
-.submit-hint{font-size:13px;color:var(--dim)}
+/* Dossier */
+.dossier-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.repo-chip{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--acc);background:var(--accSoft);border:1px solid rgba(34,211,238,.2);padding:5px 10px;border-radius:8px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dossier-empty{font-size:13px;color:var(--faint);line-height:1.9;padding:16px 0}
+.dossier-sec{margin-top:16px}
+.dossier-sec .st{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:700;margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.dossier-sec p{font-size:13.5px;color:var(--dim);line-height:1.85}
+.dossier-sec ul{list-style:none}
+.dossier-sec li{font-size:13px;color:var(--dim);line-height:1.75;padding:7px 0 7px 18px;position:relative;border-bottom:1px dashed rgba(255,255,255,.05)}
+.dossier-sec li:last-child{border-bottom:none}
+.dossier-sec li::before{content:"";position:absolute;left:2px;top:15px;width:6px;height:6px;border-radius:2px;background:var(--acc)}
+.history{margin-top:20px;display:none}
+.history.on{display:block}
+.hist-row{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.hist-row:last-child{border-bottom:none}
+.hist-date{color:var(--faint);min-width:78px;font-family:'JetBrains Mono',monospace;font-size:12px}
+.hist-pos{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dim)}
+.hist-bar{width:90px;height:6px;border-radius:99px;background:#1a2335;overflow:hidden;flex-shrink:0}
+.hist-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#22d3ee,#6366f1)}
+.hist-score{font-family:'JetBrains Mono',monospace;font-weight:600;min-width:34px;text-align:right}
+.hist-delta{font-size:12px;font-family:'JetBrains Mono',monospace}
+.hist-delta.up{color:var(--ok)}.hist-delta.down{color:var(--err)}
 
-/* Progress Steps */
-.progress-steps{margin-top:24px;display:none}
-.progress-step{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
-.progress-step:last-child{border-bottom:none}
-.progress-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;transition:var(--transition)}
-.progress-step.active .progress-dot{border-color:var(--acc);color:var(--acc);animation:pulse 1.5s infinite}
-.progress-step.completed .progress-dot{border-color:var(--ok);background:var(--ok);color:#fff}
-.progress-step.completed{color:var(--text)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+/* Room */
+#view-room{height:calc(100vh - 60px);display:none;flex-direction:column}
+#view-room.active{display:flex}
+.room-head{display:flex;align-items:center;gap:12px;padding:12px 24px;border-bottom:1px solid var(--line);flex-shrink:0;flex-wrap:wrap}
+.room-pos{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.chip{font-size:11.5px;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--dim);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.chip .k{color:var(--faint)}
+.chip.acc{color:var(--acc);border-color:rgba(34,211,238,.25);background:var(--accSoft)}
+.timer{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--dim)}
+.count{font-family:'JetBrains Mono',monospace;font-size:12px;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--dim)}
+.count.warn{color:var(--err);border-color:rgba(248,113,113,.35);background:var(--errSoft)}
+.room-body{flex:1;display:grid;grid-template-columns:270px 1fr 310px;gap:16px;padding:16px 24px;max-width:1440px;width:100%;margin:0 auto;min-height:0}
+.col{display:flex;flex-direction:column;gap:16px;min-height:0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column}
+/* interviewer */
+.iv{padding:22px;text-align:center;align-items:center}
+.iv-avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#22d3ee,#6366f1);display:flex;align-items:center;justify-content:center;margin-bottom:14px;position:relative;box-shadow:0 0 0 1px rgba(34,211,238,.35),0 10px 30px rgba(34,211,238,.2)}
+.iv-avatar::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px solid transparent;transition:var(--transition)}
+.iv-avatar.speaking::after{border-color:rgba(34,211,238,.6);animation:ring 1.4s infinite}
+@keyframes ring{0%{transform:scale(.96);opacity:.9}70%{transform:scale(1.12);opacity:.15}100%{opacity:0}}
+.iv-name{font-size:15px;font-weight:700}
+.iv-role{font-size:12px;color:var(--faint);margin-bottom:14px}
+.state{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;padding:7px 14px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--dim)}
+.state .sd{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+.state.listening{color:var(--ok);border-color:rgba(52,211,153,.3);background:var(--okSoft)}.state.listening .sd{background:var(--ok)}
+.state.thinking{color:var(--warn);border-color:rgba(251,191,36,.3);background:var(--warnSoft)}.state.thinking .sd{background:var(--warn);animation:pulse 1.2s infinite}
+.state.speaking{color:var(--acc);border-color:rgba(34,211,238,.3);background:var(--accSoft)}.state.speaking .sd{background:var(--acc);animation:pulse .8s infinite}
+.vu{display:flex;gap:4px;align-items:flex-end;height:30px;margin-top:18px}
+.vu i{width:4px;border-radius:2px;background:linear-gradient(180deg,#22d3ee,#6366f1);height:4px;transition:height .12s ease;opacity:.8}
+.iv-tip{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--faint);line-height:1.9;text-align:left}
+.iv-tip b{color:var(--dim)}
+/* transcript */
+.panel-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.panel-head .t{font-size:13px;font-weight:700}
+.panel-head .m{font-size:11.5px;color:var(--faint);font-family:'JetBrains Mono',monospace}
+.transcript{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px;position:relative}
+.msg{max-width:86%;padding:12px 15px;border-radius:var(--radius);font-size:13.8px;line-height:1.8;white-space:pre-wrap;border:1px solid transparent}
+.msg .who{display:block;font-size:11px;color:var(--faint);margin-bottom:4px;font-weight:600;letter-spacing:.02em}
+.msg.ai{align-self:flex-start;background:rgba(56,189,248,.07);border-color:rgba(56,189,248,.16);border-bottom-left-radius:5px}
+.msg.user{align-self:flex-end;background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.16);border-bottom-right-radius:5px}
+.msg.sys{align-self:center;background:transparent;color:var(--faint);font-size:12px;padding:2px;border:none}
+.jump{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:none;background:#182236;border:1px solid var(--line2);color:var(--text);padding:7px 16px;font-size:12px;border-radius:99px;box-shadow:var(--shadow);z-index:5}
+.jump.on{display:block}
+.inputbar{flex-shrink:0;display:flex;gap:10px;padding:12px 18px;border-top:1px solid var(--line)}
+/* profile */
+.prof-head{padding:16px 18px;border-bottom:1px solid var(--line);flex-shrink:0}
+.prof-row{display:flex;align-items:center;gap:12px}
+.prof-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#f97316);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.prof-row b{display:block;font-size:13.5px;font-weight:700}
+.prof-row span{font-size:11.5px;color:var(--faint)}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.badge{font-size:11px;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--dim);font-weight:600}
+.badge.acc{color:var(--acc);border-color:rgba(34,211,238,.25);background:var(--accSoft)}
+.prof-body{padding:16px 18px;overflow-y:auto;flex:1}
+.sec{margin-bottom:20px}
+.sec .st{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:700;margin-bottom:9px;font-family:'JetBrains Mono',monospace}
+.sec p{font-size:13px;color:var(--dim);line-height:1.85}
+.sec ul{list-style:none}
+.sec li{font-size:12.5px;color:var(--dim);line-height:1.7;padding:7px 0 7px 16px;position:relative;border-bottom:1px dashed rgba(255,255,255,.05)}
+.sec li:last-child{border-bottom:none}
+.sec li::before{content:"";position:absolute;left:2px;top:14px;width:5px;height:5px;border-radius:50%;background:var(--acc)}
+.locked{filter:blur(7px);pointer-events:none;user-select:none}
+.lock-wrap{position:relative}
+.lock-btn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2}
+.lock-btn button{background:rgba(11,15,23,.9);border:1px solid var(--line2);color:var(--text);font-size:12px;padding:9px 18px;border-radius:99px}
 
-/* Interview Room */
-.room-view{height:100vh;display:flex;flex-direction:column;padding-top:64px}
-.room-header{background:var(--panel);border-bottom:1px solid var(--line);padding:16px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0}
-.room-title{font-weight:600;font-size:16px}
-.room-badge{font-size:12px;padding:4px 12px;border-radius:99px;background:var(--acc-light);color:var(--acc);font-weight:600}
-.room-timer{font-variant-numeric:tabular-nums;color:var(--text-secondary);font-size:14px}
-.room-count{font-variant-numeric:tabular-nums;font-size:13px;padding:4px 12px;border-radius:99px;background:var(--bg-secondary);color:var(--text-secondary)}
-.room-count.warning{background:var(--err-light);color:var(--err);font-weight:600}
-.room-spacer{flex:1}
-.room-main{flex:1;display:grid;grid-template-columns:280px 1fr 320px;gap:20px;padding:20px 24px;max-width:1400px;margin:0 auto;width:100%;min-height:0}
-.room-sidebar{display:flex;flex-direction:column;gap:20px;min-height:0}
-.room-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden}
-
-/* Interviewer Card */
-.interviewer-card{padding:24px;text-align:center}
-.interviewer-avatar{width:80px;height:80px;border-radius:50%;margin:0 auto 16px;background:linear-gradient(135deg,var(--acc),#8b5cf6);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 4px 16px rgba(99,102,241,.25)}
-.interviewer-avatar::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid transparent;transition:var(--transition)}
-.interviewer-avatar.speaking::after{border-color:var(--acc);animation:pulse 1.2s infinite}
-.interviewer-name{font-weight:600;font-size:16px;margin-bottom:4px}
-.interviewer-role{font-size:13px;color:var(--dim);margin-bottom:20px}
-.status-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:99px;font-size:13px;font-weight:500;background:var(--bg-secondary);color:var(--text-secondary)}
-.status-dot{width:8px;height:8px;border-radius:50%;background:#94a3b8}
-.status-pill.listening{background:var(--ok-light);color:var(--ok)}
-.status-pill.listening .status-dot{background:var(--ok)}
-.status-pill.thinking{background:var(--warn-light);color:var(--warn)}
-.status-pill.thinking .status-dot{background:var(--warn);animation:pulse 1.2s infinite}
-.status-pill.speaking{background:var(--acc-light);color:var(--acc)}
-.status-pill.speaking .status-dot{background:var(--acc);animation:pulse .8s infinite}
-.audio-visualizer{display:flex;gap:4px;justify-content:center;align-items:flex-end;height:32px;margin-top:20px}
-.audio-bar{width:4px;border-radius:2px;background:var(--acc);height:4px;transition:height .15s ease}
-.interviewer-tips{margin-top:20px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);line-height:1.8;text-align:left}
-
-/* Transcript Panel */
-.transcript-panel{display:flex;flex-direction:column;min-height:0}
-.panel-header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
-.panel-title{font-weight:600;font-size:14px}
-.panel-meta{font-size:13px;color:var(--dim)}
-.transcript-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
-.message{max-width:85%;padding:14px 18px;border-radius:var(--radius);font-size:14px;line-height:1.8;white-space:pre-wrap}
-.message-header{font-size:12px;color:var(--dim);margin-bottom:4px;font-weight:500}
-.message.ai{align-self:flex-start;background:var(--bg-secondary);border:1px solid var(--line);border-bottom-left-radius:4px}
-.message.user{align-self:flex-end;background:var(--ok-light);border:1px solid #a7f3d0;border-bottom-right-radius:4px}
-.message.system{align-self:center;background:transparent;color:var(--dim);font-size:13px;padding:4px}
-.input-area{padding:0 24px 20px;max-width:1400px;margin:0 auto;width:100%;display:flex;gap:12px;flex-shrink:0}
-.input-area input{flex:1}
-
-/* Profile Panel */
-.profile-header{padding:20px;border-bottom:1px solid var(--line)}
-.profile-user{display:flex;align-items:center;gap:12px}
-.profile-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:20px}
-.profile-info{flex:1}
-.profile-name{font-weight:600;font-size:14px}
-.profile-meta{font-size:12px;color:var(--dim)}
-.profile-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-.profile-badge{font-size:12px;padding:4px 12px;border-radius:99px;background:var(--bg-secondary);color:var(--text-secondary);font-weight:500}
-.profile-badge.primary{background:var(--acc-light);color:var(--acc)}
-.profile-body{padding:20px;overflow-y:auto;flex:1}
-.profile-section{margin-bottom:24px}
-.section-title{font-size:12px;font-weight:600;color:var(--dim);letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px}
-.section-content{font-size:14px;line-height:1.8;color:var(--text)}
-.section-list{list-style:none}
-.section-list li{font-size:13px;line-height:1.7;padding:10px 0 10px 20px;position:relative;border-bottom:1px dashed var(--line)}
-.section-list li:last-child{border-bottom:none}
-.section-list li::before{content:"";position:absolute;left:0;top:16px;width:8px;height:8px;border-radius:2px;background:var(--acc)}
-.blur-content{filter:blur(6px);pointer-events:none;user-select:none;position:relative}
-.lock-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.8);backdrop-filter:blur(4px);border-radius:var(--radius)}
-.lock-button{background:var(--text);color:#fff;padding:10px 20px;font-size:13px;border-radius:99px;font-weight:600}
-
-/* Report View */
-.report-view{padding:100px 24px 60px;max-width:900px;margin:0 auto}
-.report-header{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);padding:40px;display:flex;gap:40px;align-items:center;margin-bottom:24px;flex-wrap:wrap}
-.score-ring{width:160px;height:160px;position:relative;flex-shrink:0}
-.score-ring svg{transform:rotate(-90deg)}
-.score-ring-bg{fill:none;stroke:var(--bg-tertiary);stroke-width:12}
-.score-ring-fill{fill:none;stroke:url(#scoreGradient);stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
-.score-ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.score-number{font-size:40px;font-weight:800;line-height:1}
-.score-label{font-size:13px;color:var(--dim);margin-top:4px}
-.score-delta{font-size:12px;margin-top:8px;padding:2px 8px;border-radius:99px;background:var(--ok-light);color:var(--ok);font-weight:600}
-.dimensions{flex:1;min-width:280px;display:grid;grid-template-columns:1fr 1fr;gap:20px 32px}
-.dimension-item .dimension-header{display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;font-weight:500}
-.dimension-item .dimension-score{font-variant-numeric:tabular-nums;font-weight:600}
-.dimension-bar{height:8px;border-radius:99px;background:var(--bg-tertiary);overflow:hidden}
-.dimension-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),#8b5cf6);width:0;transition:width 1s ease}
-.report-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);padding:40px;margin-bottom:24px}
-.report-title{font-size:24px;font-weight:700;margin-bottom:24px}
-.report-content h1{font-size:22px;font-weight:700;margin:24px 0 16px;color:var(--text)}
-.report-content h2{font-size:18px;font-weight:600;margin:24px 0 12px;color:var(--acc)}
-.report-content ul,.report-content ol{padding-left:24px;margin:12px 0}
-.report-content li{margin:8px 0;font-size:15px;line-height:1.8}
-.report-content p{font-size:15px;line-height:1.9;margin:12px 0;color:var(--text-secondary)}
-.report-content blockquote{border-left:3px solid var(--acc);padding:12px 20px;background:var(--acc-light);border-radius:0 var(--radius) var(--radius) 0;margin:16px 0;font-size:14px}
-.report-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px;padding-top:32px;border-top:1px solid var(--line)}
-.transcript-review{max-height:480px;overflow-y:auto;margin-top:24px;padding:24px;background:var(--bg-secondary);border-radius:var(--radius)}
-.transcript-review h3{font-size:16px;font-weight:600;margin-bottom:16px;color:var(--acc)}
-.transcript-item{margin:12px 0;font-size:14px;line-height:1.8}
-.transcript-item .speaker{font-weight:600;margin-right:8px}
-.transcript-item .speaker.ai{color:var(--acc)}
-.transcript-item .speaker.user{color:var(--ok)}
-
-/* Loading States */
-.loading-overlay{display:none;align-items:center;gap:12px;font-size:15px;color:var(--text-secondary);margin-bottom:24px}
-.loading-overlay.active{display:flex}
-.loading-spinner{width:24px;height:24px;border:2px solid var(--acc-light);border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite}
+/* Report */
+#view-report{padding:36px 24px 80px}
+.rep-wrap{max-width:920px;margin:0 auto}
+.rep-hero{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow);padding:32px;display:flex;gap:36px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.ring{width:150px;height:150px;position:relative;flex-shrink:0}
+.ring svg{transform:rotate(-90deg)}
+.ring .bgc{fill:none;stroke:#1a2335;stroke-width:11}
+.ring .fg{fill:none;stroke:url(#rg);stroke-width:11;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.ring .txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.ring .num{font-size:38px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;letter-spacing:-.02em}
+.ring .lb{font-size:11px;color:var(--faint)}
+.ring .delta{font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:99px;margin-top:4px}
+.ring .delta.up{color:var(--ok);background:var(--okSoft)}
+.ring .delta.down{color:var(--err);background:var(--errSoft)}
+.dims{flex:1;min-width:280px;display:grid;grid-template-columns:1fr 1fr;gap:18px 28px}
+.dim-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px;color:var(--dim);font-weight:600}
+.dim-top b{color:var(--text);font-family:'JetBrains Mono',monospace;font-weight:600}
+.dim-bar{height:8px;border-radius:99px;background:#1a2335;overflow:hidden}
+.dim-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#22d3ee,#6366f1);width:0;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.rating{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:99px;font-size:13px;font-weight:700;margin-bottom:14px}
+.rating.pass{color:var(--ok);background:var(--okSoft);border:1px solid rgba(52,211,153,.3)}
+.rating.consider{color:var(--warn);background:var(--warnSoft);border:1px solid rgba(251,191,36,.3)}
+.rating.fail{color:var(--err);background:var(--errSoft);border:1px solid rgba(248,113,113,.3)}
+.rep-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm);padding:32px;margin-bottom:18px}
+.rep-title{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.rep-body h1{font-size:20px;font-weight:800;margin:22px 0 12px}
+.rep-body h2{font-size:16px;font-weight:700;margin:22px 0 10px;color:var(--acc)}
+.rep-body h3{font-size:14.5px;font-weight:700;margin:16px 0 8px;color:var(--text)}
+.rep-body p{font-size:14px;line-height:1.95;margin:10px 0;color:var(--dim)}
+.rep-body ul,.rep-body ol{padding-left:20px;margin:10px 0}
+.rep-body li{font-size:13.8px;line-height:1.9;margin:7px 0;color:var(--dim)}
+.rep-body li b,.rep-body p b{color:var(--text)}
+.rep-body blockquote{border-left:3px solid var(--acc);background:var(--accSoft);padding:10px 16px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin:14px 0;font-size:13.5px;color:var(--dim)}
+.rep-body code{font-family:'JetBrains Mono',monospace;font-size:13px;background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;color:var(--acc2)}
+.rep-body pre{background:#0a0f18;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px;overflow:auto;margin:12px 0}
+.rep-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;padding-top:22px;border-top:1px solid var(--line)}
+.tr-review{max-height:440px;overflow-y:auto;margin-top:18px;padding:18px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius)}
+.tr-item{margin:9px 0;font-size:13px;line-height:1.85;color:var(--dim)}
+.tr-item b{color:var(--text);margin-right:6px}
+/* Tutor */
+.tutor-card{border:1px solid rgba(34,211,238,.22);background:linear-gradient(180deg,rgba(34,211,238,.06),rgba(34,211,238,0.01)) ,var(--card)}
+.tutor-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.tutor-ic{width:38px;height:38px;border-radius:11px;background:var(--accSoft);color:var(--acc);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tutor-head b{display:block;font-size:15px;font-weight:700}
+.tutor-head span{font-size:12px;color:var(--faint)}
+.tutor-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.tutor-controls select{max-width:240px;padding:9px 12px;font-size:13px;border-radius:var(--radius-sm)}
+.tutor-status{font-size:12px;color:var(--faint);margin-bottom:6px;min-height:18px}
+.tutor-log{display:none;max-height:320px;overflow-y:auto;padding:14px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);gap:10px;flex-direction:column}
+.tutor-log.on{display:flex}
+.tutor-log .msg{max-width:92%;font-size:13.4px}
+/* 兼容旧维度类名 */
+.dimension-item{margin-bottom:0}
+.dimension-header{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px;color:var(--dim);font-weight:600}
+.dimension-score{color:var(--text);font-family:'JetBrains Mono',monospace}
+.dimension-bar{height:8px;border-radius:99px;background:#1a2335;overflow:hidden}
+.dimension-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#22d3ee,#6366f1);width:0;transition:width 1.1s ease}
+.step.active .d{border-color:var(--acc);color:var(--acc);animation:pulse 1.2s infinite}
+.step.completed .d{background:var(--ok);border-color:var(--ok);color:#052e22}
+/* loading */
+.rep-wait{display:none;align-items:center;gap:12px;font-size:14px;color:var(--dim);margin-bottom:18px}
+.rep-wait.on{display:flex}
+.spin{width:20px;height:20px;border:2px solid rgba(34,211,238,.2);border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.skeleton{background:linear-gradient(90deg,var(--bg-secondary) 25%,var(--bg-tertiary) 50%,var(--bg-secondary) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.skeleton-line{height:16px;margin:12px 0}
-.skeleton-title{height:28px;width:40%;margin:24px 0 16px}
-
-/* Ask Section */
-.ask-section{margin-top:24px}
-.ask-header{margin-bottom:20px}
-.ask-title{font-size:20px;font-weight:700;margin-bottom:8px}
-.ask-subtitle{font-size:14px;color:var(--text-secondary)}
-.ask-list{margin-bottom:20px}
-.ask-item{padding:20px 0;border-bottom:1px solid var(--line)}
-.ask-item:last-child{border-bottom:none}
-.ask-question{font-weight:600;font-size:15px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start}
-.ask-question::before{content:"Q";width:24px;height:24px;border-radius:8px;background:var(--acc-light);color:var(--acc);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ask-answer{font-size:14px;line-height:1.9;color:var(--text-secondary)}
-.ask-answer h1,.ask-answer h2,.ask-answer h3{font-size:15px;font-weight:600;margin:16px 0 8px;color:var(--text)}
-.ask-answer ul,.ask-answer ol{padding-left:24px;margin:8px 0}
-.ask-answer li{margin:6px 0}
-.ask-answer pre{background:var(--bg-secondary);border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;overflow:auto;font-size:13px;margin:12px 0}
-.ask-answer code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px}
-.ask-input-area{display:flex;gap:12px;align-items:flex-end;margin-top:20px}
-.ask-input-area textarea{flex:1;min-height:80px;resize:vertical}
-.ask-hint{font-size:12px;color:var(--dim);margin-top:8px}
-
-/* History */
-.history-section{margin-top:24px;display:none}
-.history-section.active{display:block}
-.history-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:24px}
-.history-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px}
-.history-title{font-size:16px;font-weight:600}
-.history-meta{font-size:13px;color:var(--dim)}
-.history-item{display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
-.history-item:last-child{border-bottom:none}
-.history-date{color:var(--dim);min-width:80px}
-.history-position{flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.history-score{font-variant-numeric:tabular-nums;font-weight:600;min-width:40px;text-align:right}
-.history-delta{font-weight:600;font-variant-numeric:tabular-nums;font-size:13px}
-.history-delta.up{color:var(--ok)}
-.history-delta.down{color:var(--err)}
-.history-bar{width:80px;height:6px;background:var(--bg-tertiary);border-radius:99px;overflow:hidden}
-.history-bar-fill{height:100%;background:linear-gradient(90deg,var(--acc),#8b5cf6);border-radius:99px}
-
-/* Toast */
-.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--text);color:#fff;padding:14px 24px;font-size:14px;border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:1000;opacity:0;transition:var(--transition-slow);font-weight:500}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-
-/* Settings Popup */
-.settings-popup{position:absolute;right:0;top:48px;width:300px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-xl);padding:20px;z-index:60;display:none}
-.settings-popup.active{display:block}
-.settings-popup .form-group{margin-bottom:16px}
-.settings-popup label{font-size:13px;font-weight:600;margin-bottom:8px;display:block}
-.settings-popup select{width:100%;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--line);background:#fff;font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:var(--transition)}
-.settings-popup select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
-.settings-popup input[type=range]{width:100%;accent-color:var(--acc);margin-top:8px}
-
-/* Scroll to Bottom */
-.scroll-bottom{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);display:none;background:var(--text);color:#fff;padding:8px 20px;font-size:13px;border-radius:99px;box-shadow:var(--shadow-lg);z-index:10;font-weight:500}
-.scroll-to-bottom.show{display:block}
-
-/* Responsive */
-@media(max-width:1024px){
-  .room-main{grid-template-columns:1fr;grid-template-rows:auto minmax(400px,1fr) auto;overflow-y:auto;padding:16px;gap:16px}
-  .room-sidebar{flex-direction:row;overflow-x:auto}
-  .room-sidebar .room-panel{min-width:280px}
-  .interviewer-card{display:grid;grid-template-columns:56px 1fr auto;grid-template-areas:"avatar name status" "avatar role visualizer" "tips tips tips";column-gap:16px;row-gap:8px;text-align:left;padding:16px}
-  .interviewer-avatar{grid-area:avatar;width:56px;height:56px;font-size:24px;margin:0}
-  .interviewer-name{grid-area:name;font-size:15px}
-  .interviewer-role{grid-area:role;margin:0;font-size:12px}
-  .status-pill{grid-area:status;align-self:center;font-size:12px;padding:6px 12px}
-  .audio-visualizer{grid-area:visualizer;margin:0;justify-content:flex-start;height:24px}
-  .interviewer-tips{grid-area:tips;margin-top:12px;padding-top:12px;font-size:11px}
-  .profile-body{max-height:40vh}
+.skel{background:linear-gradient(90deg,#131b29 25%,#1a2434 37%,#131b29 63%);background-size:400% 100%;animation:sh 1.4s infinite;border-radius:8px}
+@keyframes sh{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.skel.l{height:14px;margin:12px 0}
+.skel.h{height:24px;width:40%;margin:26px 0 14px}
+/* settings pop */
+.set-wrap{position:relative}
+.set-pop{position:absolute;right:0;top:48px;width:290px;background:var(--panel);border:1px solid var(--line2);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:18px;z-index:80;display:none}
+.set-pop.on{display:block}
+.set-pop .field{margin-bottom:14px}
+/* toast */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:#182236;border:1px solid var(--line2);color:var(--text);padding:12px 20px;font-size:13px;border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:999;opacity:0;transition:var(--transition);pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+/* responsive */
+@media(max-width:1100px){
+  .layout{grid-template-columns:1fr}
+  .room-body{grid-template-columns:1fr;overflow-y:auto;height:auto}
+  #view-room{height:auto;min-height:calc(100vh - 60px)}
+  .col{min-height:0}
+  .panel{min-height:0}
+  .transcript{min-height:320px}
+  .dims{grid-template-columns:1fr}
+  .nav-inner{gap:14px;padding:0 14px;overflow-x:auto}
+  .tabs{padding:3px}
+  .tab{padding:6px 11px;font-size:12px}
+  .online{display:none}
 }
-@media(max-width:768px){
-  .nav{padding:0 16px}
-  .hero{padding:120px 16px 60px}
-  .hero-title{font-size:32px}
-  .hero-subtitle{font-size:16px}
-  .setup-card{padding:24px;margin:0 16px}
-  .mode-grid{grid-template-columns:1fr}
-  .submit-section{flex-direction:column;align-items:stretch}
-  .room-header{padding:12px 16px;gap:12px;flex-wrap:wrap}
-  .room-title{font-size:14px}
-  .room-badge,.room-timer{display:none}
-  .room-main{padding:12px;gap:12px}
-  .message{max-width:94%;font-size:14px;padding:12px 16px}
-  .report-view{padding:80px 16px 40px}
-  .report-header{padding:24px;gap:24px;justify-content:center;text-align:center}
-  .score-ring{margin:0 auto}
-  .dimensions{width:100%;grid-template-columns:1fr}
-  .report-card{padding:24px}
-  .history-bar{width:60px}
-  .settings-popup{position:fixed;left:16px;right:16px;top:auto;bottom:16px;width:auto}
+@media(max-width:720px){
+  #view-setup{padding:24px 14px 60px}
+  .hero h1{font-size:27px}
+  .hero p{font-size:14px}
+  .card{padding:20px;border-radius:var(--radius-lg)}
+  .row2,.modes{grid-template-columns:1fr}
+  .actions{flex-direction:column;align-items:stretch}
+  .room-head{padding:10px 14px;gap:8px}
+  .room-body{padding:12px 14px;gap:12px}
+  .msg{max-width:94%}
+  .rep-hero{padding:22px;gap:20px;justify-content:center;text-align:center}
+  .rep-card{padding:22px}
+  .set-pop{position:fixed;left:14px;right:14px;top:auto;bottom:14px;width:auto}
+  .tabs{max-width:100%;overflow-x:auto}
 }
 </style>
 </head>
 <body>
-
-<!-- Navigation -->
+<!-- Nav -->
 <nav class="nav">
   <div class="nav-inner">
-    <a href="#" class="nav-logo">
-      <div class="nav-logo-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-          <line x1="12" y1="19" x2="12" y2="23"/>
-          <line x1="8" y1="23" x2="16" y2="23"/>
-        </svg>
+    <div class="brand">
+      <div class="brand-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#04121c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
       </div>
-      <span>AI Interview</span>
-    </a>
-    <div class="nav-links">
-      <a href="#" class="nav-link" onclick="showView('view-setup');return false;">开始面试</a>
-      <a href="https://github.com/gyuvdvxtjq/interview" target="_blank" class="nav-link">GitHub</a>
+      MockAI 极客面试官
     </div>
+    <div class="tabs">
+      <button class="tab active" id="tabPrep">面试准备</button>
+      <button class="tab" id="tabRoom">实时面试间</button>
+      <button class="tab" id="tabReport">复盘评估报告</button>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="online"><span class="dot"></span>服务在线</div>
   </div>
 </nav>
 
-<!-- Setup View -->
+<!-- ========== 准备 ========== -->
 <div class="view active" id="view-setup">
-  <div class="hero">
-    <div class="hero-badge">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-        <path d="M2 17l10 5 10-5"/>
-        <path d="M2 12l10 5 10-5"/>
-      </svg>
-      AI 驱动的面试训练
+  <div class="wrap">
+    <div class="hero">
+      <div class="hero-badge">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        基于 Gemini 实时语音 · 代码级深挖
+      </div>
+      <h1>让 AI 面试官<br><span class="grad">真的读一遍你的代码</span></h1>
+      <p>浅克隆你的 GitHub 仓库，通读源码后生成深挖档案，再以真人级的语音逐层追问。含糊必追，答不上来才放过。</p>
     </div>
-    <h1 class="hero-title">用 AI 面试官<br>打磨你的技术面试</h1>
-    <p class="hero-subtitle">上传简历和 GitHub 仓库，AI 面试官会真的克隆并通读你的代码，然后像真人一样语音逐层追问——含糊必追，答不上来才放过。</p>
-    <div class="hero-features">
-      <div class="hero-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg>
-        真实代码分析
+
+    <div class="layout">
+      <div>
+        <div class="card">
+          <div class="card-title"><span class="num">01</span>候选人资料</div>
+          <div class="card-desc">简历与岗位决定面试官的提问重心，解析在服务端完成，不留存</div>
+
+          <div class="field">
+            <label class="field-label">简历 <span class="opt">（PDF / TXT / MD）</span></label>
+            <div class="drop" id="drop">
+              <div class="ic">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <div><b>点击或拖入简历文件</b><span>可选，但强烈建议</span></div>
+              <div class="ok" id="dropSuccess">✓ <span id="dropFileName">已选择</span></div>
+            </div>
+            <input type="file" id="resumeFile" accept=".pdf,.txt,.md" class="hidden">
+          </div>
+
+          <div class="field">
+            <label class="field-label">目标岗位</label>
+            <input type="text" id="position" placeholder="如：后端开发工程师 / Go 开发">
+          </div>
+
+          <div class="field" style="margin-bottom:0">
+            <label class="field-label">岗位 JD <span class="opt">（可选）</span></label>
+            <textarea id="jd" rows="4" placeholder="贴招聘描述，面试官会围绕 JD 的要求提问…"></textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="num">02</span>面试配置</div>
+          <div class="card-desc">选择面试模式、面试官角色与音色</div>
+
+          <div class="field">
+            <label class="field-label">面试类型</label>
+            <div class="modes">
+              <div class="mode-card selected" data-mode="project">
+                <b>项目深挖专场</b>
+                <span>只拷问 GitHub 项目，从架构问到实现细节</span>
+              </div>
+              <div class="mode-card" data-mode="comprehensive">
+                <b>综合技术面</b>
+                <span>项目深挖 + 技术基础 + 场景题 + 反问</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label class="field-label">面试官角色</label>
+              <select id="personaSelect">
+                <option value="strict">严格面试官（默认）</option>
+                <option value="pressure">压力面官</option>
+                <option value="mentor">温和导师</option>
+                <option value="architect">资深架构师</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label">音色</label>
+              <select id="voiceSelect">
+                <option value="Charon">Charon · 低沉男声</option>
+                <option value="Puck">Puck · 明快男声</option>
+                <option value="Fenrir">Fenrir · 厚重男声</option>
+                <option value="Orus">Orus · 清晰男声</option>
+                <option value="Kore">Kore · 温柔女声</option>
+                <option value="Aoede">Aoede · 从容女声</option>
+                <option value="Leda">Leda · 年轻女声</option>
+                <option value="Zephyr">Zephyr · 明亮女声</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">麦克风检测 <span class="opt">（说话时音量条应跳动）</span></label>
+            <div class="mic-test">
+              <button class="btn-secondary" id="micTestBtn" style="flex-shrink:0">开始检测</button>
+              <div style="flex:1;min-width:0">
+                <div class="mic-bars" id="micTestBars">
+                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                </div>
+                <div class="mic-status" id="micTestStatus">点击按钮授权麦克风，然后正常说话</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-primary" id="startBtn" style="flex:1">准备面试</button>
+            <span class="hint">克隆 + 通读代码约 20~60 秒</span>
+          </div>
+
+          <div class="steps" id="prepSteps">
+            <div class="step" data-s="0"><div class="d">1</div><div>克隆仓库 / 解析简历</div></div>
+            <div class="step" data-s="1"><div class="d">2</div><div>AI 通读全部代码</div></div>
+            <div class="step" data-s="2"><div class="d">3</div><div>生成深挖问题与露馅点</div></div>
+            <div class="step" data-s="3"><div class="d">4</div><div>面试官上线</div></div>
+          </div>
+          <div class="err" id="prepErr"></div>
+        </div>
       </div>
-      <div class="hero-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg>
-        实时语音对话
-      </div>
-      <div class="hero-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg>
-        深度追问
-      </div>
-      <div class="hero-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg>
-        复盘报告
+
+      <div>
+        <div class="card">
+          <div class="card-title"><span class="num">03</span>代码档案</div>
+          <div class="card-desc">系统会浅克隆该公开仓库、通读源码，提取真实亮点与文件级追问点</div>
+
+          <div class="field">
+            <label class="field-label">GitHub 仓库</label>
+            <input type="text" id="ghUrl" placeholder="owner/repo 或完整链接">
+          </div>
+
+          <div class="dossier-top">
+            <span class="repo-chip">浅克隆 · 只读 · 不执行代码</span>
+          </div>
+          <div class="dossier-empty">
+            · 扫描关键源码文件，识别架构与技术栈<br>
+            · 提取可验证的代码亮点<br>
+            · 生成面试官专属深挖问题与露馅点<br>
+            <span style="color:var(--acc)">准备面试时自动分析，进入面试间可用于追问</span>
+          </div>
+        </div>
+
+        <div class="history" id="history"></div>
       </div>
     </div>
   </div>
-
-  <div class="setup-card">
-    <div class="card-header">
-      <h2 class="card-title">开始一场模拟面试</h2>
-      <p class="card-subtitle">建议戴耳机，准备 15 分钟不受打扰的时间</p>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">简历 <span class="form-optional">（PDF / TXT / MD，可选但强烈建议）</span></label>
-      <div class="drop-zone" id="drop">
-        <div class="drop-zone-icon">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
-          </svg>
-        </div>
-        <div class="drop-zone-title">点击或拖入简历文件</div>
-        <div class="drop-zone-desc">解析在本机服务完成，不留存</div>
-        <div class="drop-zone-success" id="dropSuccess">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <span id="dropFileName">已选择</span>
-        </div>
-      </div>
-      <input type="file" id="resumeFile" accept=".pdf,.txt,.md" class="hidden">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">GitHub 仓库 <span class="form-optional">（项目深挖的核心弹药）</span></label>
-      <input type="text" id="ghUrl" placeholder="owner/repo 或完整链接，如 https://github.com/you/your-repo">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">目标岗位</label>
-      <input type="text" id="position" placeholder="如：后端开发工程师 / Go 开发">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">面试类型</label>
-      <div class="mode-grid">
-        <div class="mode-card selected" data-mode="project">
-          <div class="mode-card-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-            项目深挖专场
-          </div>
-          <div class="mode-card-desc">只拷问你的 GitHub 项目，从架构问到实现细节</div>
-        </div>
-        <div class="mode-card" data-mode="comprehensive">
-          <div class="mode-card-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-            综合技术面
-          </div>
-          <div class="mode-card-desc">项目深挖 + 技术基础 + 场景题 + 反问</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">岗位 JD <span class="form-optional">（可选，贴招聘描述）</span></label>
-      <textarea id="jd" placeholder="岗位职责 / 任职要求…" rows="3"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">麦克风检测 <span class="form-optional">（建议开始前测试，说话时音量条应跳动）</span></label>
-      <div style="display:flex;align-items:center;gap:16px;padding:16px 20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-secondary)">
-        <button class="btn-secondary" id="micTestBtn" style="flex-shrink:0">开始检测</button>
-        <div style="flex:1;min-width:0">
-          <div id="micTestBars" style="display:flex;gap:4px;align-items:flex-end;height:28px">
-            <i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i>
-          </div>
-          <div id="micTestStatus" style="font-size:12px;color:var(--dim);margin-top:6px">点击「开始检测」授权麦克风，然后正常说话</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="submit-section">
-      <button class="btn-primary" id="startBtn" style="flex:1">准备面试</button>
-      <span class="submit-hint">约 20~60 秒</span>
-    </div>
-
-    <div class="progress-steps" id="prepSteps">
-      <div class="progress-step" data-s="0">
-        <div class="progress-dot">1</div>
-        <div>克隆仓库 / 解析简历</div>
-      </div>
-      <div class="progress-step" data-s="1">
-        <div class="progress-dot">2</div>
-        <div>AI 通读全部代码</div>
-      </div>
-      <div class="progress-step" data-s="2">
-        <div class="progress-dot">3</div>
-        <div>生成深挖问题与露馅点</div>
-      </div>
-      <div class="progress-step" data-s="3">
-        <div class="progress-dot">4</div>
-        <div>面试官上线</div>
-      </div>
-    </div>
-    <div id="prepErr" style="margin-top:16px;color:var(--err);font-size:14px;padding:12px 16px;background:var(--err-light);border-radius:var(--radius-sm);display:none;"></div>
-  </div>
-
-  <div class="history-section" id="history"></div>
 </div>
 
-<!-- Interview Room View -->
+<!-- ========== 面试间 ========== -->
 <div class="view" id="view-room">
-  <div class="room-view">
-    <div class="room-header">
-      <div class="room-title" id="topPos">面试进行中</div>
-      <div class="room-badge" id="topMode">项目深挖</div>
-      <div class="room-timer" id="timer">00:00</div>
-      <div class="room-count" id="count">剩余 --:--</div>
-      <div class="room-spacer"></div>
-      <div style="position:relative">
-        <button class="btn-icon" id="setBtn" title="设置">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        </button>
-        <div class="settings-popup" id="setPop">
-          <div class="form-group">
-            <label>麦克风设备</label>
-            <select id="micSel"><option value="">默认设备</option></select>
-          </div>
-          <div class="form-group">
-            <label>面试官音量 <span id="volVal" style="float:right;color:var(--dim)">100%</span></label>
-            <input type="range" id="vol" min="0" max="100" step="5" value="100">
-          </div>
-        </div>
-      </div>
-      <button class="btn-icon" id="muteBtn" title="麦克风">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+  <div class="room-head">
+    <div class="room-pos" id="topPos">面试进行中</div>
+    <span class="chip acc" id="topMode">项目深挖</span>
+    <span class="timer mono" id="timer">00:00</span>
+    <span class="count mono" id="count">剩余 --:--</span>
+    <div style="flex:1"></div>
+    <div class="set-wrap">
+      <button class="btn-icon" id="setBtn" title="设置">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
-      <button class="btn-danger" id="endBtn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
-        结束面试
-      </button>
-    </div>
-
-    <div class="room-main">
-      <div class="room-sidebar">
-        <div class="room-panel interviewer-card">
-          <div class="interviewer-avatar" id="avatar">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </div>
-          <div class="interviewer-name">AI 面试官</div>
-          <div class="interviewer-role" id="ivRole">技术面试官</div>
-          <div class="status-pill" id="statePill">
-            <div class="status-dot"></div>
-            <span id="stateText">等待开始</span>
-          </div>
-          <div class="audio-visualizer" id="vu"><i class="audio-bar"></i><i class="audio-bar"></i><i class="audio-bar"></i><i class="audio-bar"></i><i class="audio-bar"></i><i class="audio-bar"></i><i class="audio-bar"></i></div>
-          <div class="interviewer-tips">
-            💡 AI 说话时<b>直接开口就能打断</b><br>
-            说完停顿片刻自动进入下一轮<br>
-            语音没识别好可用下方输入框
-          </div>
+      <div class="set-pop" id="setPop">
+        <div class="field">
+          <label class="field-label">麦克风设备</label>
+          <select id="micSel"><option value="">默认设备</option></select>
         </div>
-      </div>
-
-      <div class="room-panel transcript-panel">
-        <div class="panel-header">
-          <div class="panel-title">实时转写</div>
-          <div class="panel-meta" id="trCount"></div>
-        </div>
-        <div class="transcript-body" id="transcript"></div>
-        <button class="scroll-bottom" id="jumpBottom">↓ 回到最新</button>
-      </div>
-
-      <div class="room-sidebar">
-        <div class="room-panel">
-          <div class="profile-header">
-            <div class="profile-user">
-              <div class="profile-avatar">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </div>
-              <div class="profile-info">
-                <div class="profile-name">候选人 · 你</div>
-                <div class="profile-meta" id="profSub">准备中…</div>
-              </div>
-            </div>
-            <div class="profile-badges" id="profBadges"></div>
-          </div>
-          <div class="profile-body">
-            <div class="profile-section" id="secSummary" style="display:none">
-              <div class="section-title">项目档案 · AI 已通读你的代码</div>
-              <div class="section-content" id="profSummary"></div>
-            </div>
-            <div class="profile-section" id="secHi" style="display:none">
-              <div class="section-title">代码亮点</div>
-              <ul class="section-list" id="profHi"></ul>
-            </div>
-            <div class="profile-section" id="secAmmo" style="display:none">
-              <div class="section-title">面试官的追问弹药</div>
-              <div style="position:relative">
-                <div class="blur-content" id="ammoBody">
-                  <ul class="section-list" id="profAmmo"></ul>
-                </div>
-                <div class="lock-overlay" id="ammoLock">
-                  <button class="lock-button">🔒 考后揭晓</button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="field" style="margin-bottom:0">
+          <label class="field-label">面试官音量 <span id="volVal" style="float:right;color:var(--faint)">100%</span></label>
+          <input type="range" id="vol" min="0" max="100" step="5" value="100" style="width:100%;accent-color:var(--acc)">
         </div>
       </div>
     </div>
+    <button class="btn-icon" id="muteBtn" title="麦克风">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="btn-danger" id="endBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+      结束面试
+    </button>
+  </div>
 
-    <div class="input-area">
-      <input type="text" id="textInput" placeholder="打字回答（备用）…">
-      <button class="btn-secondary" id="textSend">发送</button>
+  <div class="room-body">
+    <div class="col">
+      <div class="panel iv">
+        <div class="iv-avatar" id="avatar">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#04121c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="iv-name">AI 面试官</div>
+        <div class="iv-role" id="ivRole">技术面试官</div>
+        <div class="state" id="statePill"><span class="sd"></span><span id="stateText">等待开始</span></div>
+        <div class="vu" id="vu"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="iv-tip">说话时<b>直接开口即可打断</b><br>停顿片刻自动进入下一轮<br>识别不准可用底部输入框</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div class="t">实时转写</div><div class="m" id="trCount"></div></div>
+      <div class="transcript" id="transcript"></div>
+      <button class="jump" id="jumpBottom">↓ 回到最新</button>
+      <div class="inputbar">
+        <input type="text" id="textInput" placeholder="打字回答（备用）…">
+        <button class="btn-secondary" id="textSend">发送</button>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="panel">
+        <div class="prof-head">
+          <div class="prof-row">
+            <div class="prof-av">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div><b>候选人 · 你</b><span id="profSub">准备中…</span></div>
+          </div>
+          <div class="badges" id="profBadges"></div>
+        </div>
+        <div class="prof-body">
+          <div class="sec" id="secSummary" style="display:none">
+            <div class="st">项目档案 · AI 已通读代码</div>
+            <p id="profSummary"></p>
+          </div>
+          <div class="sec" id="secHi" style="display:none">
+            <div class="st">代码亮点</div>
+            <ul id="profHi"></ul>
+          </div>
+          <div class="sec" id="secAmmo" style="display:none">
+            <div class="st">追问弹药</div>
+            <div class="lock-wrap">
+              <div class="locked" id="ammoBody"><ul id="profAmmo"></ul></div>
+              <div class="lock-btn" id="ammoLock"><button>🔒 考后揭晓</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Report View -->
+<!-- ========== 报告 ========== -->
 <div class="view" id="view-report">
-  <div class="report-view">
-    <div class="loading-overlay" id="repWait">
-      <div class="loading-spinner"></div>
-      <span id="repWaitText">AI 正在复盘这场面试…</span>
-    </div>
+  <div class="rep-wrap">
+    <div class="rep-wait" id="repWait"><div class="spin"></div><span id="repWaitText">AI 正在复盘这场面试…</span></div>
 
-    <div class="report-header" id="repHead" style="display:none">
-      <div class="score-ring">
-        <svg width="160" height="160">
-          <circle class="score-ring-bg" cx="80" cy="80" r="70"/>
-          <circle class="score-ring-fill" id="ringBar" cx="80" cy="80" r="70" stroke-dasharray="439.8" stroke-dashoffset="439.8"/>
-          <defs>
-            <linearGradient id="scoreGradient" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#6366f1"/>
-              <stop offset="1" stop-color="#8b5cf6"/>
-            </linearGradient>
-          </defs>
+    <div class="rep-hero" id="repHead" style="display:none">
+      <div class="ring">
+        <svg width="150" height="150">
+          <circle class="bgc" cx="75" cy="75" r="65"/>
+          <circle class="fg" id="ringBar" cx="75" cy="75" r="65" stroke-dasharray="408.4" stroke-dashoffset="408.4"/>
+          <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#818cf8"/></linearGradient></defs>
         </svg>
-        <div class="score-ring-text">
-          <div class="score-number" id="ringNum">–</div>
-          <div class="score-label">总分 /100</div>
-          <div class="score-delta" id="ringTag" style="display:none"></div>
+        <div class="txt">
+          <div class="num" id="ringNum">–</div>
+          <div class="lb">总分 /100</div>
+          <div class="delta" id="ringTag" style="display:none"></div>
         </div>
       </div>
-      <div class="dimensions" id="dims"></div>
+      <div style="flex:1;min-width:260px">
+        <div class="rating consider" id="reportRating" style="display:none">评估中</div>
+        <div class="dims" id="dims"></div>
+      </div>
     </div>
 
-    <div class="report-card">
-      <h1 class="report-title">复盘报告</h1>
-      <div id="repSkel" class="hidden">
-        <div class="skeleton skeleton-line" style="width:92%"></div>
-        <div class="skeleton skeleton-line" style="width:88%"></div>
-        <div class="skeleton skeleton-line" style="width:70%"></div>
-        <div class="skeleton skeleton-title"></div>
-        <div class="skeleton skeleton-line"></div>
-        <div class="skeleton skeleton-line" style="width:86%"></div>
-        <div class="skeleton skeleton-line" style="width:64%"></div>
+    <div class="rep-card">
+      <div class="rep-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        复盘评估报告
       </div>
-      <div id="repBody" class="report-content"></div>
-      <button class="btn-primary" id="repRetry" style="display:none;margin-top:16px">重新生成报告</button>
-      <div class="report-actions hidden" id="repBtns">
+      <div id="repSkel" class="hidden">
+        <div class="skel l" style="width:92%"></div>
+        <div class="skel l" style="width:86%"></div>
+        <div class="skel l" style="width:70%"></div>
+        <div class="skel h"></div>
+        <div class="skel l"></div>
+        <div class="skel l" style="width:88%"></div>
+        <div class="skel l" style="width:62%"></div>
+      </div>
+      <div id="repBody" class="rep-body"></div>
+      <button class="btn-primary" id="repRetry" style="display:none;margin-top:14px">重新生成报告</button>
+      <div class="rep-actions hidden" id="repBtns">
         <button class="btn-primary" id="againBtn">再来一场</button>
         <button class="btn-secondary" id="dlBtn">下载 .md</button>
         <button class="btn-secondary" id="cpBtn">复制全文</button>
         <button class="btn-secondary" id="trBtn">展开完整转写</button>
       </div>
-      <div class="transcript-review hidden" id="trRev"></div>
+      <div class="tr-review hidden" id="trRev"></div>
     </div>
 
-    <div class="report-card ask-section" id="askCard" style="display:none">
-      <div class="ask-header">
-        <h2 class="ask-title">继续问这个项目</h2>
-        <p class="ask-subtitle">面试官下班了，导师还在。回答基于这个仓库的真实代码，不会的会直说。</p>
+    <div class="rep-card tutor-card">
+      <div class="tutor-head">
+        <div class="tutor-ic">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </div>
+        <div><b>语音导师 · 一对一复盘</b><span>面试官下班了，导师还在。可以就这场面试的任何问题实时语音追问，结合你的真实代码讲解。</span></div>
       </div>
-      <div class="ask-list" id="askList"></div>
-      <div class="ask-input-area">
-        <textarea id="askInput" placeholder="比如：这个状态机为什么这么设计？我要加一个审批环节该改哪里？"></textarea>
-        <button class="btn-primary" id="askBtn">提问</button>
+      <div class="tutor-controls">
+        <select id="tutorVoice">
+          <option value="Kore">Kore · 温柔女声</option>
+          <option value="Aoede">Aoede · 从容女声</option>
+          <option value="Charon">Charon · 低沉男声</option>
+          <option value="Orus">Orus · 清晰男声</option>
+          <option value="Puck">Puck · 明快男声</option>
+          <option value="Fenrir">Fenrir · 厚重男声</option>
+          <option value="Leda">Leda · 年轻女声</option>
+          <option value="Zephyr">Zephyr · 明亮女声</option>
+        </select>
+        <button class="btn-primary" id="tutorBtn">开始语音对话</button>
+        <button class="btn-secondary hidden" id="tutorStopBtn">结束对话</button>
       </div>
-      <div class="ask-hint">Ctrl/⌘ + Enter 发送</div>
+      <div class="tutor-status" id="tutorStatus">点击开始后即可直接说话，导师会自动回应，可随时打断</div>
+      <div class="tutor-log" id="tutorLog"></div>
+    </div>
+
+    <div class="rep-card" id="askCard" style="display:none">
+      <div class="rep-title" style="font-size:17px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        继续问这个项目
+      </div>
+      <div class="card-desc" style="margin-bottom:14px">文字提问，回答基于仓库真实代码，不会的会直说</div>
+      <div id="askList"></div>
+      <div style="display:flex;gap:10px;align-items:flex-end;margin-top:14px">
+        <textarea id="askInput" rows="2" placeholder="比如：这个状态机为什么这么设计？要加审批环节该改哪里？"></textarea>
+        <button class="btn-primary" id="askBtn" style="flex-shrink:0">提问</button>
+      </div>
+      <div style="font-size:11.5px;color:var(--faint);margin-top:8px" id="askHint">Ctrl/⌘ + Enter 发送</div>
     </div>
   </div>
 </div>
 
 <script>
+
 /* ================= 基础 ================= */
 const $ = (id) => document.getElementById(id);
-const show = (v) => { document.querySelectorAll('.view').forEach(e => e.classList.remove('active')); $(v).classList.add('active'); };
+const show = (v) => { document.querySelectorAll('.view').forEach(e => e.classList.remove('active')); $(v).classList.add('active'); syncTab(v); };
+function syncTab(v) {
+  const map = { 'view-setup': 'tabPrep', 'view-room': 'tabRoom', 'view-report': 'tabReport' };
+  Object.keys(map).forEach((k) => { const el = $(map[k]); if (el) el.classList.toggle('active', k === v); });
+}
 window.showView = show; // 暴露给导航栏
 let ws = null, sid = null, sessionInfo = null;
 let audioCtx = null, mediaStream = null, workletNode = null, srcNode = null, masterGain = null;
@@ -652,6 +668,7 @@ let curStatus = '';
 const messages = []; // {role, text}
 const vad = { noise: 300, speech: 0, silence: 0, inUtt: false, uttFrames: 0, barge: 0 };
 let micTestActive = false, micLoudTs = 0;
+let tutorActive = false;
 
 /* ================= Setup 交互 ================= */
 $('drop').onclick = () => $('resumeFile').click();
@@ -675,7 +692,7 @@ $('startBtn').onclick = async () => {
   const btn = $('startBtn'), err = $('prepErr');
   btn.disabled = true; err.style.display = 'none'; err.textContent = '';
   try {
-    const payload = { position: $('position').value.trim(), jd: $('jd').value.trim(), mode: selectedMode(), githubUrl: $('ghUrl').value.trim() };
+    const payload = { position: $('position').value.trim(), jd: $('jd').value.trim(), mode: selectedMode(), githubUrl: $('ghUrl').value.trim(), voice: ($('voiceSelect')||{}).value || '', persona: ($('personaSelect')||{}).value || 'strict' };
     const f = $('resumeFile').files[0];
     if (f) { payload.resumeBase64 = await fileToB64(f); payload.resumeName = f.name; }
     if (!payload.resumeBase64 && !payload.githubUrl) throw new Error('至少上传简历或填写 GitHub 仓库');
@@ -814,23 +831,23 @@ function autoScroll() {
 }
 $('transcript').addEventListener('scroll', () => {
   stickBottom = atBottom();
-  $('jumpBottom').classList.toggle('show', !stickBottom);
+  $('jumpBottom').classList.toggle('on', !stickBottom);
 });
 $('jumpBottom').onclick = () => {
   const t = $('transcript');
   t.scrollTop = t.scrollHeight;
   stickBottom = true;
-  $('jumpBottom').classList.remove('show');
+  $('jumpBottom').classList.remove('on');
 };
 
 /* ================= 设置面板 ================= */
 $('setBtn').onclick = (e) => {
   e.stopPropagation();
-  $('setPop').classList.toggle('active');
-  if ($('setPop').classList.contains('active')) listMics();
+  $('setPop').classList.toggle('on');
+  if ($('setPop').classList.contains('on')) listMics();
 };
 document.addEventListener('click', (e) => {
-  if (!$('setPop').contains(e.target) && e.target !== $('setBtn')) $('setPop').classList.remove('active');
+  if (!$('setPop').contains(e.target) && e.target !== $('setBtn')) $('setPop').classList.remove('on');
 });
 $('micSel').onchange = async () => {
   const id = $('micSel').value;
@@ -858,23 +875,23 @@ function saveHist(rec) {
 function renderHist() {
   const a = loadHist();
   const box = $('history');
-  if (!a.length) { box.classList.remove('active'); box.innerHTML = ''; return; }
+  if (!a.length) { box.classList.remove('on'); box.innerHTML = ''; return; }
   const rows = a.slice(0, 5).map((r, i) => {
     const prev = a[i + 1];
     const d = prev && prev.total != null && r.total != null ? r.total - prev.total : null;
     const dt = new Date(r.ts || Date.now());
     const when = (dt.getMonth() + 1) + '/' + dt.getDate() + ' ' +
       String(dt.getHours()).padStart(2, '0') + ':' + String(dt.getMinutes()).padStart(2, '0');
-    return '<div class="history-item">' +
-      '<span class="history-date">' + when + '</span>' +
-      '<span class="history-position">' + esc(r.position || '未填岗位') + '</span>' +
-      '<div class="history-bar"><div class="history-bar-fill" style="width:' + Math.max(0, Math.min(100, r.total || 0)) + '%"></div></div>' +
-      '<span class="history-score">' + (r.total == null ? '–' : r.total) + '</span>' +
-      (d == null ? '' : '<span class="history-delta ' + (d >= 0 ? 'up' : 'down') + '">' + (d >= 0 ? '+' : '') + d + '</span>') +
+    return '<div class="hist-row">' +
+      '<span class="hist-date">' + when + '</span>' +
+      '<span class="hist-pos">' + esc(r.position || '未填岗位') + '</span>' +
+      '<div class="hist-bar"><i style="width:' + Math.max(0, Math.min(100, r.total || 0)) + '%"></i></div>' +
+      '<span class="hist-score">' + (r.total == null ? '–' : r.total) + '</span>' +
+      (d == null ? '' : '<span class="hist-delta ' + (d >= 0 ? 'up' : 'down') + '">' + (d >= 0 ? '+' : '') + d + '</span>') +
       '</div>';
   }).join('');
-  box.innerHTML = '<div class="history-card"><div class="history-header"><div class="history-title">训练记录</div><div class="history-meta">最近 ' + Math.min(5, a.length) + ' 场 · 只存本机</div></div>' + rows + '</div>';
-  box.classList.add('active');
+  box.innerHTML = '<div class="card" style="padding:20px 22px"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px"><div style="font-size:14px;font-weight:700">训练记录</div><div style="font-size:11.5px;color:var(--faint)">最近 ' + Math.min(5, a.length) + ' 场 · 只存本机</div></div>' + rows + '</div>';
+  box.classList.add('on');
 }
 
 /* ================= WS ================= */
@@ -896,7 +913,10 @@ function connectWS() {
         break;
       case 'engine':
         engine = m.engine;
-        if (engine === 'live') { setState('实时连线 · 请讲', 'listening'); toast('Gemini Live 实时引擎已接入'); }
+        if (tutorActive) {
+          if (engine === 'live') { $('tutorStatus').textContent = '导师已上线，直接说话即可，可随时打断'; setState('导师在线', 'listening'); }
+          else { $('tutorStatus').textContent = '导师引擎不可用，请稍后重试'; }
+        } else if (engine === 'live') { setState('实时连线 · 请讲', 'listening'); toast('Gemini Live 实时引擎已接入'); }
         else { toast('Live 引擎不可用，已切换级联模式'); setState('听你说', 'listening'); }
         break;
       case 'add_transcript': addMsg(m.role, m.text, m.insertBeforeAi); break;
@@ -918,6 +938,10 @@ function connectWS() {
         if (curStatus.includes('复盘')) startSkeleton();
         if (curStatus) setState(curStatus, 'thinking');
         else if (!playing && playQueue.length === 0 && !liveSrc.length) setState('听你说', 'listening');
+        break;
+      case 'tutor_status':
+        if (m.state === 'connecting') $('tutorStatus').textContent = '正在连接导师…';
+        else if (m.state === 'stopped') { $('tutorStatus').textContent = '对话已结束，可随时重新开始'; tutorActive = false; $('tutorBtn').classList.remove('hidden'); $('tutorStopBtn').classList.add('hidden'); }
         break;
       case 'error': toast(m.text); break;
       case 'timeup':
@@ -960,7 +984,23 @@ async function loadSessionInfo() {
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /* ================= 转写 / 状态 ================= */
+function addTutorMsg(role, text) {
+  const log = $('tutorLog');
+  if (!log) return null;
+  const div = document.createElement('div');
+  if (role === 'sys') { div.className = 'msg sys'; div.textContent = text; log.appendChild(div); log.scrollTop = log.scrollHeight; return div; }
+  div.className = 'msg ' + (role === 'ai' ? 'ai' : 'user');
+  const who = document.createElement('span'); who.className = 'who';
+  who.textContent = role === 'ai' ? '导师' : '你';
+  const body = document.createElement('div'); body.className = 'message-body'; body.textContent = text || '';
+  div.appendChild(who); div.appendChild(body);
+  div._body = text || '';
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
 function addMsg(role, text, insertBeforeAi) {
+  if (tutorActive) return addTutorMsg(role, text);
   const t = $('transcript');
   const div = document.createElement('div');
   if (role === 'sys') { div.className = 'message system'; div.textContent = text; }
@@ -992,8 +1032,8 @@ function onSentence(m) {
 }
 function setState(text, cls) {
   $('stateText').textContent = text;
-  $('statePill').className = 'status-pill ' + (cls || '');
-  $('avatar').className = 'interviewer-avatar ' + (cls === 'speaking' ? 'speaking' : '');
+  $('statePill').className = 'state ' + (cls || '');
+  $('avatar').className = 'iv-avatar ' + (cls === 'speaking' ? 'speaking' : '');
 }
 
 /* ================= 音频帧 / VAD ================= */
@@ -1207,7 +1247,7 @@ function startSkeleton() {
   $('repSkel').classList.remove('hidden');
   $('repBtns').classList.add('hidden');
   $('repRetry').style.display = 'none';
-  $('repWait').classList.add('active');
+  $('repWait').classList.add('on');
   setState('正在复盘…', 'thinking');
   clearInterval(repInt);
   repT0 = Date.now();
@@ -1218,7 +1258,7 @@ function startSkeleton() {
 function failSkeleton() {
   clearInterval(repInt);
   $('repSkel').classList.add('hidden');
-  $('repWait').classList.remove('active');
+  $('repWait').classList.remove('on');
   $('repBody').innerHTML = '<p style="color:var(--err);margin:6px 0">报告生成失败，可以点下方按钮重试；转写记录仍保留在上方「展开完整转写」里。</p>';
   $('repBtns').classList.remove('hidden');
   $('repRetry').style.display = 'inline-flex';
@@ -1230,7 +1270,7 @@ function showReport(m) {
   reportMd = m.markdown;
   clearInterval(timerInt);
   clearInterval(repInt);
-  $('repWait').classList.remove('active');
+  $('repWait').classList.remove('on');
   $('repSkel').classList.add('hidden');
   $('repBtns').classList.remove('hidden');
   $('repRetry').style.display = 'none';
@@ -1250,12 +1290,18 @@ function showReport(m) {
     $('repHead').style.display = 'flex';
     if (total != null) {
       $('ringNum').textContent = total;
-      const c = 2 * Math.PI * 70;
+      const rt = $('reportRating');
+      if (rt) {
+        rt.style.display = 'inline-flex';
+        rt.className = 'rating ' + (total >= 80 ? 'pass' : total >= 60 ? 'consider' : 'fail');
+        rt.textContent = total >= 80 ? '表现优秀 · 建议进入下一轮' : total >= 60 ? '基本合格 · 仍有明显短板' : '未达标准 · 建议重练';
+      }
+      const c = 2 * Math.PI * 65;
       setTimeout(() => { $('ringBar').style.strokeDashoffset = c * (1 - total / 100); }, 60);
     }
     $('dims').innerHTML = dims.map(([k, v]) =>
       `<div class="dimension-item"><div class="dimension-header"><span>${esc(k)}</span><span class="dimension-score">${v}</span></div><div class="dimension-bar"><div class="dimension-fill" data-w="${v}"></div></div></div>`).join('');
-    setTimeout(() => document.querySelectorAll('.dimension-fill').forEach((i) => (i.style.width = i.dataset.w + '%')), 120);
+    setTimeout(() => document.querySelectorAll('.dim-bar i').forEach((i) => (i.style.width = i.dataset.w + '%')), 120);
     const prev = loadHist()[0];
     const delta = (total != null && prev && prev.total != null) ? total - prev.total : null;
     if (delta != null) {
@@ -1278,6 +1324,12 @@ function showReport(m) {
   const lock = $('ammoLock'); if (lock) lock.style.display = 'none';
   const ab = $('ammoBody'); if (ab) ab.classList.remove('blur-content');
   $('askCard').style.display = '';
+  try {
+    $('tutorLog').innerHTML = ''; $('tutorLog').classList.remove('on');
+    $('tutorBtn').classList.remove('hidden'); $('tutorStopBtn').classList.add('hidden');
+    $('tutorStatus').textContent = '点击开始后即可直接说话，导师会自动回应，可随时打断';
+    tutorActive = false;
+  } catch (e) {}
   show('view-report');
   window.scrollTo(0, 0);
 }
@@ -1346,8 +1398,8 @@ function mdParse(md) {
 function toast(text) {
   const t = document.createElement('div'); t.className = 'toast'; t.textContent = text;
   document.body.appendChild(t);
-  setTimeout(() => t.classList.add('show'), 10);
-  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 4000);
+  setTimeout(() => t.classList.add('on'), 10);
+  setTimeout(() => { t.classList.remove('on'); setTimeout(() => t.remove(), 300); }, 4000);
 }
 // 本地偏好 / 训练记录恢复
 (() => {
@@ -1366,4 +1418,33 @@ function toast(text) {
   const m = location.hash.match(/s=([a-f0-9]+)/);
   if (m) { sid = m[1]; show('view-room'); t0 = Date.now(); timerInt = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); $('timer').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }, 500); initAudio().catch(() => {}); connectWS(); }
 })();
-</script></body></html>
+
+
+/* ================= 导航 ================= */
+$('tabPrep').onclick = () => show('view-setup');
+$('tabRoom').onclick = () => { if (sid) show('view-room'); else toast('先准备一场面试'); };
+$('tabReport').onclick = () => { if ((($('repBody')||{}).innerHTML||'').trim()) show('view-report'); else toast('面试结束后才有复盘报告'); };
+
+/* ================= 语音导师 ================= */
+$('tutorBtn').onclick = () => {
+  if (!ws || ws.readyState !== 1) { toast('连接已断开，请刷新页面后重试'); return; }
+  tutorActive = true;
+  $('tutorLog').innerHTML = '';
+  $('tutorLog').classList.add('on');
+  $('tutorBtn').classList.add('hidden');
+  $('tutorStopBtn').classList.remove('hidden');
+  $('tutorStatus').textContent = '正在连接导师…';
+  try { ws.send(JSON.stringify({ type: 'start_tutor', voice: $('tutorVoice').value })); } catch (e) { toast('发送失败：' + e.message); }
+};
+$('tutorStopBtn').onclick = () => {
+  try { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'stop_tutor' })); } catch {}
+  stopLivePlayback();
+  tutorActive = false;
+  $('tutorBtn').classList.remove('hidden');
+  $('tutorStopBtn').classList.add('hidden');
+  $('tutorStatus').textContent = '对话已结束，可随时重新开始';
+};
+
+</script>
+</body>
+</html>

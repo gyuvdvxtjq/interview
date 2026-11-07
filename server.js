@@ -63,6 +63,9 @@ function newSession(payload) {
     resumeText: payload.resumeText || '',
     githubUrl: payload.githubUrl || '',
     dossier: payload.dossier || null,
+    voice: VOICES.some((v) => v.id === payload.voice) ? payload.voice : CFG.geminiVoice,
+    persona: PERSONAS[payload.persona] ? payload.persona : 'strict',
+    liveMode: 'interview',
     systemPrompt: '',
     greeting: '',
     transcript: [],
@@ -255,6 +258,37 @@ function extractJson(text) {
   return JSON.parse(raw.slice(start, end + 1));
 }
 
+// ---------------- 音色 / 角色预设 ----------------
+const VOICES = [
+  { id: 'Charon', label: 'Charon · 低沉男声', desc: '沉稳有压迫感，适合真实面试' },
+  { id: 'Puck', label: 'Puck · 明快男声', desc: '节奏快、偏活泼，适合综合面' },
+  { id: 'Fenrir', label: 'Fenrir · 厚重男声', desc: '气场强，适合压力面' },
+  { id: 'Orus', label: 'Orus · 清晰男声', desc: '吐字清楚，适合技术讲解' },
+  { id: 'Kore', label: 'Kore · 温柔女声', desc: '亲和，适合导师复盘' },
+  { id: 'Aoede', label: 'Aoede · 从容女声', desc: '知性平和，适合讲解' },
+  { id: 'Leda', label: 'Leda · 年轻女声', desc: '轻快自然' },
+  { id: 'Zephyr', label: 'Zephyr · 明亮女声', desc: '清晰有活力' },
+];
+
+const PERSONAS = {
+  strict: {
+    name: '严格面试官',
+    brief: '按大厂标准严格把关，不迎合、不给面子，回答没到位就当场指出并继续追问。',
+  },
+  pressure: {
+    name: '压力面官',
+    brief: '持续施压：质疑数字、质疑归因、质疑真实性，语速偏快，问题短促，偶尔沉默给对方压力。',
+  },
+  mentor: {
+    name: '温和导师',
+    brief: '像带人的资深工程师：先听完整，再点出关键漏洞，适当给提示引导对方自己想明白。',
+  },
+  architect: {
+    name: '资深架构师',
+    brief: '从系统设计和权衡角度问，关注边界、容量、失败模式、演进成本，不纠缠语法细节。',
+  },
+};
+
 // ---------------- 面试官 prompt ----------------
 function buildSystemPrompt(session) {
   const style = session.style === 'code' ? 'code' : 'real';
@@ -304,6 +338,16 @@ function buildSystemPrompt(session) {
         '\n容易注水的说法：' + JSON.stringify(d.traps || []);
     }
   }
+  // 角色风格
+  const persona = PERSONAS[session.persona] || PERSONAS.strict;
+  p += '\n\n【角色设定：' + persona.name + '】' + persona.brief;
+
+  // 判断力（关键）：面试官必须先判断再开口，不能顺从、不能附和错误
+  p += '\n\n【判断力（关键）】候选人每次回答后，你先在心里做三件事再开口：' +
+    '1）分辨哪些是事实、哪些是套话或背诵；2）至少找出一个技术漏洞、含糊点或未经证实的数字；' +
+    '3）决定深挖、换角度还是放过。不要在语音里说出这个思考过程，直接给出下一个问题。' +
+    '遇到错误的技术说法必须当场指正，不要为了礼貌而附和；候选人答得空泛时不要替他补全逻辑，追问即可。';
+
   return p;
 }
 
@@ -336,9 +380,14 @@ function liveSendText(session, text) {
   session.live?.ws?.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text }] }], turnComplete: true } }));
 }
 
-function startLive(session) {
+function startLive(session, opts = {}) {
+  const liveMode = opts.mode || session.liveMode || 'interview';
+  const promptText = opts.prompt || (liveMode === 'tutor' ? buildTutorPrompt(session) : session.systemPrompt);
+  const voiceName = opts.voice || session.voice || CFG.geminiVoice;
+  session.liveMode = liveMode;
   const lws = new WebSocketLib(liveUrl(), { handshakeTimeout: 15000 });
-  session.live = { ws: lws, ready: false, inText: '', outText: '', userFlushed: false, reconnects: 0, closed: false };
+  session.live = { ws: lws, ready: false, inText: '', outText: '', userFlushed: false, reconnects: 0, closed: false, mode: liveMode };
+  const live = session.live;
   const readyTimer = setTimeout(() => {
     if (!session.live.ready) {
       console.error('[live] setup 超时，降级 cascade');
@@ -349,19 +398,30 @@ function startLive(session) {
   }, 12000);
 
   lws.on('open', () => {
-    lws.send(JSON.stringify({
-      setup: {
-        model: `models/${CFG.geminiModel}`,
-        generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: CFG.geminiVoice } } } },
-        systemInstruction: { parts: [{ text: session.systemPrompt }] },
-        inputAudioTranscription: {},
-        outputAudioTranscription: {},
-        contextWindowCompression: { slidingWindow: {} },
-      },
-    }));
+    const buildSetup = (withThinking) => {
+      const generationConfig = {
+        responseModalities: ['AUDIO'],
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
+      };
+      if (withThinking) generationConfig.thinkingConfig = { thinkingBudget: 2048, includeThoughts: false };
+      return {
+        setup: {
+          model: `models/${CFG.geminiModel}`,
+          generationConfig,
+          systemInstruction: { parts: [{ text: promptText }] },
+          inputAudioTranscription: {},
+          outputAudioTranscription: {},
+          contextWindowCompression: { slidingWindow: {} },
+        },
+      };
+    };
+    session.live.thinkingTried = true;
+    session.live.buildSetup = buildSetup;
+    lws.send(JSON.stringify(buildSetup(true)));
   });
 
   lws.on('message', (raw, isBin) => {
+    if (session.live !== live) return; // 旧连接的消息不再处理
     let msg;
     try { msg = JSON.parse((isBin ? Buffer.from(raw) : raw).toString('utf8')); } catch { console.log('[live] non-json frame', String(raw).slice(0, 80)); return; }
     if (msg.setupComplete) {
@@ -375,9 +435,22 @@ function startLive(session) {
           session.transcript.slice(-16).map((t) => (t.role === 'ai' ? '面试官：' : '候选人：') + t.text).join('\n').slice(-4000) + '）');
         session.reconnectIntro = false;
       } else {
-        liveSendText(session, '（候选人刚刚上线坐好，设备就绪。请开始面试：一句简短打招呼，然后请对方自我介绍。）');
+        if (session.liveMode === 'tutor') {
+          liveSendText(session, '（面试已结束。你现在的身份是技术导师，不是面试官。请用一两句话开场：告诉对方可以就刚才面试中的任何问题提问，也可以让你把某道题讲透，你会结合他的真实代码讲。语气像带人的资深工程师。）');
+        } else {
+          liveSendText(session, '（候选人刚刚上线坐好，设备就绪。请开始面试：一句简短打招呼，然后请对方自我介绍。）');
+        }
       }
       return;
+    }
+    if (msg.error && !session.live.ready && session.live.thinkingTried) {
+      const es = JSON.stringify(msg).toLowerCase();
+      if (/thinking|invalid_argument|unknown name|unknown field|unsupported/.test(es)) {
+        console.log('[live] thinkingConfig 不受支持，重发无 thinking 的 setup');
+        session.live.thinkingTried = false;
+        try { lws.send(JSON.stringify(session.live.buildSetup(false))); } catch {}
+        return;
+      }
     }
     const sc = msg.serverContent;
     if (!sc) {
@@ -423,12 +496,13 @@ function startLive(session) {
 
   lws.on('close', (code, reason) => {
     clearTimeout(readyTimer);
-    console.log(`[live] ws closed sid=${session.sid} code=${code} reason=${String(reason).slice(0, 100)} ready=${session.live.ready}`);
-    if (session.live.closed) return;
-    if (session.live.reconnects < 3 && !session.interviewDone) {
-      session.live.reconnects++;
+    console.log(`[live] ws closed sid=${session.sid} code=${code} reason=${String(reason).slice(0, 100)} ready=${live.ready} mode=${live.mode}`);
+    if (live.closed) return;
+    if (session.live === live) session.live = null;
+    if (live.reconnects < 3 && !session.interviewDone && live.mode !== 'tutor') {
+      live.reconnects++;
       session.reconnectIntro = true;
-      console.log(`[live] 连接断开，1.5s 后重连（第 ${session.live.reconnects} 次）`);
+      console.log(`[live] 连接断开，1.5s 后重连（第 ${live.reconnects} 次）`);
       setTimeout(() => startLive(session), 1500);
     } else {
       session.engine = 'cascade';
@@ -691,6 +765,73 @@ function tutorPrompt(session, question) {
 }
 
 
+function buildTutorPrompt(session) {
+  const parts = [
+    '你是一位资深技术导师，正在一对一辅导刚结束模拟面试的候选人。你不是面试官，语气像带人的老工程师：直接、耐心、不客套。',
+    '',
+    '回答纪律（重要）：',
+    '- 先说结论，再讲原理，再给具体例子；涉及代码时必须引用他仓库里真实的文件或模块名。',
+    '- 明确区分"事实"和"你的判断"；不确定就说不确定，绝不编造。',
+    '- 他答错或概念混淆时直接指出，不要附和；但要说清楚为什么错、正确的是什么。',
+    '- 讲完一个点，可以反问一句检查他是否真的懂了。',
+    '- 语音输出：单次 2~4 句话，不超过 120 字；禁止 markdown、列表、emoji、括号说明。',
+  ];
+  if (session.repoText) {
+    parts.push('', '【候选人仓库真实代码（节选）】', session.repoText.slice(0, 50000));
+  }
+  if (session.resumeText) {
+    parts.push('', '【候选人简历】', session.resumeText.slice(0, 4000));
+  }
+  if (session.transcript && session.transcript.length) {
+    const recent = session.transcript.slice(-24).map((t) => (t.role === 'ai' ? '面试官：' : '候选人：') + t.text).join('\n');
+    parts.push('', '【刚才这场面试的记录（复盘依据）】', recent);
+  }
+  return parts.join('\n');
+}
+
+function startTutor(session, voice) {
+  // 关闭旧连接并摘掉监听，避免旧 close 回调触发重连
+  if (session.live && session.live.ws) {
+    session.live.closed = true;
+    try { session.live.ws.removeAllListeners(); } catch {}
+    try { session.live.ws.close(); } catch {}
+  }
+  session.liveMode = 'tutor';
+  if (voice) session.voice = voice;
+  startLive(session, { mode: 'tutor', voice: session.voice });
+}
+
+function buildReportPrompt(session) {
+  var parts = [
+    '你是严格的技术面试复盘官。你的职责是让候选人看到真实差距，不是让他舒服。',
+    '',
+    '评分锚点（必须严格执行）：',
+    '- 90 分以上：极少给，除非候选人每个问题都有扎实细节、准确原理、真实取舍。',
+    '- 80-89：优秀，技术判断准确，细节充分。',
+    '- 70-79：合格，基本答上但深度不足或有少量错误。',
+    '- 60-69：勉强，多处含糊、概念混淆或明显背书。',
+    '- 60 以下：不及格，核心问题答不上来或技术错误严重。',
+    '',
+    '批判性要求（关键）：',
+    '- 不要讨好、不要空泛表扬、不要因为态度好而抬分。没有具体证据就按低档给分。',
+    '- 必须指出回答中的技术错误、概念混淆、含糊表述和未经证实的数字，并引用原话片段。',
+    '- 亮点最多 3 条，且每条必须有具体证据；确实没有亮点就写"本场没有达到亮点的回答"。',
+    '- 逐题点评要写明：答对了什么、漏了什么、错在哪里、为什么这个错误在真实面试中危险。',
+    '',
+    '输出格式（严格）：',
+    '第一行只写 总分：X/100',
+    '第二行只写 技术深度：X/100，表达清晰：X/100，抗追问：X/100，项目真实感：X/100',
+    '空一行后输出 markdown 报告正文：# 模拟面试复盘报告',
+    '正文包含：总体评价（一段话，直接点出最致命的问题）、亮点（列表）、暴露的问题（列表，引用原话）、逐题点评（每条：问：原题 → 答：要点 → 评分：X/10 → 问题：错在哪 → 更好的答法：可直接套用的一句）、改进建议（按优先级排序）、如果重来一次（3 条最关键的动作）。',
+    '全部中文，直接给候选人看。',
+  ];
+  if (session.position) parts.push('', '【目标岗位】' + session.position);
+  if (session.jd) parts.push('', '【岗位 JD】' + session.jd.slice(0, 2000));
+  if (session.resumeText) parts.push('', '【候选人简历】' + session.resumeText.slice(0, 3000));
+  if (session.dossier && session.dossier.projectSummary) parts.push('', '【项目速记】' + session.dossier.projectSummary);
+  return parts.join('\n');
+}
+
 async function generateReport(session) {
   if (session.reporting) return;
   session.reporting = true;
@@ -701,7 +842,8 @@ async function generateReport(session) {
     const transcriptText = session.transcript
       .map((t) => (t.role === 'ai' ? '面试官：' : '候选人：') + t.text).join('\n');
     const md = await llmComplete([
-      { role: 'system', content: '你是面试复盘助手。严格按以下格式输出：第一行只写 `总分：X/100`；第二行只写 `技术深度：X/100，表达清晰：X/100，抗追问：X/100，项目真实感：X/100`；空一行后输出 markdown 复盘报告正文：# 模拟面试复盘报告，包含 总体评价(一段话)、亮点(列表)、暴露的问题(列表，具体到哪句话暴露了什么)、逐题点评(按问答顺序，每条一行：**问：**问题原文 → **答：**候选人回答要点 → **评分：**X/10 → **更好的答法：**一句可直接套用的示范)、改进建议(列表，给出可以直接用的更好答法示例)、面试官追问点回顾(列表)。全部用中文，直接给候选人看，客观但直接。' },
+      { role: 'system', content: buildReportPrompt(session) },
+      { role: 'user', content: '面试记录：\n' + transcriptText.slice(0, 20000) },
       { role: 'user', content: transcriptText.slice(0, 20000) },
     ], { maxTokens: 2500, temperature: 0.4 });
     send({ type: 'report', markdown: md, html: marked.parse(md) });
@@ -727,10 +869,11 @@ async function finishInterview(session, reason) {
     ? '（时间到了，面试必须结束。请用一两句话礼貌收尾，不要提问。）'
     : '（候选人申请结束面试。请用一两句话礼貌收尾道别，不要再提问。）';
   if (session.engine === 'live' && session.live?.ws && session.live.ready) {
-    session.live.closed = true;
+    const liveRef = session.live;
+    liveRef.closed = true;
     liveSendText(session, farewell);
     setTimeout(async () => {
-      try { session.live.ws?.close(); } catch {}
+      try { liveRef.ws?.close(); } catch {}
       await genReport();
     }, 6000);
   } else {
@@ -768,7 +911,7 @@ wss.on('connection', (ws, req) => {
         session.ws = ws;
         session.engine = CFG.geminiKey ? 'live' : 'cascade';
         if (!session.maxTimer) session.maxTimer = setTimeout(() => finishInterview(session, 'timeup'), CFG.interviewMinutes * 60 * 1000);
-        ws.send(JSON.stringify({ type: 'ready', position: session.position, mode: session.mode, engine: session.engine, minutes: CFG.interviewMinutes }));
+        ws.send(JSON.stringify({ type: 'ready', position: session.position, mode: session.mode, engine: session.engine, minutes: CFG.interviewMinutes, voice: session.voice, persona: session.persona }));
         if (session.engine === 'live') {
           startLive(session); // setupComplete 后由它推 engine/live 消息并开场
         } else {
@@ -813,6 +956,23 @@ wss.on('connection', (ws, req) => {
           break;
         case 'gen_report':
           await generateReport(session);
+          break;
+        case 'start_tutor': {
+          const v = String(msg.voice || '').slice(0, 30);
+          ws.send(JSON.stringify({ type: 'tutor_status', state: 'connecting', voice: v || session.voice }));
+          session.interviewDone = true;
+          if (session.maxTimer) clearTimeout(session.maxTimer);
+          startTutor(session, VOICES.some((x) => x.id === v) ? v : null);
+          break;
+        }
+        case 'stop_tutor':
+          if (session.live && session.live.ws) {
+            session.live.closed = true;
+            try { session.live.ws.close(); } catch {}
+            session.live = null;
+          }
+          session.liveMode = 'none';
+          ws.send(JSON.stringify({ type: 'tutor_status', state: 'stopped' }));
           break;
         case 'ping':
           ws.send(JSON.stringify({ type: 'pong' }));
