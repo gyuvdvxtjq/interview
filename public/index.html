@@ -751,7 +751,7 @@ async function workletUrl() {
           this.tick++;
           if(this.acc.length >= 1600){
             const pcm = new Int16Array(this.acc);
-            const level = Math.sqrt(this.sq/Math.max(1,this.n));
+            const level = Math.sqrt(this.sq/Math.max(1,this.n)) * 32767;
             this.port.postMessage({pcm, level}, [pcm.buffer]);
             this.acc=[]; this.sq=0; this.n=0;
           }
