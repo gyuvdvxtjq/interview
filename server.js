@@ -25,6 +25,7 @@ const CFG = {
   ttsVoice: process.env.TTS_VOICE || 'zh-CN-YunxiNeural', // 男声面试官（cascade 兜底用）
   geminiKey: process.env.GEMINI_KEY || '',
   geminiModel: process.env.GEMINI_MODEL || 'gemini-3.8-live',
+  geminiTutorModel: process.env.GEMINI_TUTOR_MODEL || 'gemini-3.8-live-extended-thinking',
   geminiVoice: process.env.GEMINI_VOICE || 'Charon', // Live 引擎男声
   maxUtteranceBytes: 16000 * 2 * 35, // 35 秒上限
 
@@ -555,6 +556,7 @@ function startLive(session, opts = {}) {
   const liveMode = opts.mode || session.liveMode || 'interview';
   const promptText = opts.prompt || (liveMode === 'tutor' ? buildTutorPrompt(session) : session.systemPrompt);
   const voiceName = opts.voice || session.voice || CFG.geminiVoice;
+  const modelName = liveMode === 'tutor' ? (CFG.geminiTutorModel || CFG.geminiModel) : CFG.geminiModel;
   session.liveMode = liveMode;
   const lws = new WebSocketLib(liveUrl(), { handshakeTimeout: 15000 });
   session.live = { ws: lws, ready: false, inText: '', outText: '', userFlushed: false, reconnects: 0, closed: false, mode: liveMode };
@@ -575,9 +577,9 @@ function startLive(session, opts = {}) {
         responseModalities: ['AUDIO'],
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
       };
-      if (c.thinking) generationConfig.thinkingConfig = { thinkingBudget: 2048, includeThoughts: false };
+      if (c.thinking) generationConfig.thinkingConfig = { thinkingLevel: 'HIGH' };
       const setup = {
-        model: `models/${CFG.geminiModel}`,
+        model: `models/${modelName}`,
         generationConfig,
         systemInstruction: { parts: [{ text: promptText }] },
         inputAudioTranscription: {},
@@ -595,7 +597,7 @@ function startLive(session, opts = {}) {
       }
       return { setup };
     };
-    session.live.cfg = { thinking: true, vad: true };
+    session.live.cfg = { thinking: liveMode === 'tutor', vad: true };
     session.live.buildSetup = buildSetup;
     lws.send(JSON.stringify(buildSetup(session.live.cfg)));
   });
@@ -811,6 +813,7 @@ const server = http.createServer(async (req, res) => {
       repoCache: cacheCount,
       mineru: CFG.mineruKey ? 'official' : (CFG.mineruUrl ? 'self' : 'off'),
       model: CFG.geminiModel,
+      tutorModel: CFG.geminiTutorModel,
       vadSilenceMs: Number(process.env.VAD_SILENCE_MS || 1800),
     }));
     return;
