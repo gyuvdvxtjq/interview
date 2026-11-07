@@ -416,6 +416,19 @@ input::placeholder,textarea::placeholder{color:#94a3b8}
       <textarea id="jd" placeholder="岗位职责 / 任职要求…" rows="3"></textarea>
     </div>
 
+    <div class="form-group">
+      <label class="form-label">麦克风检测 <span class="form-optional">（建议开始前测试，说话时音量条应跳动）</span></label>
+      <div style="display:flex;align-items:center;gap:16px;padding:16px 20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-secondary)">
+        <button class="btn-secondary" id="micTestBtn" style="flex-shrink:0">开始检测</button>
+        <div style="flex:1;min-width:0">
+          <div id="micTestBars" style="display:flex;gap:4px;align-items:flex-end;height:28px">
+            <i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i><i class="audio-bar" style="opacity:.4"></i>
+          </div>
+          <div id="micTestStatus" style="font-size:12px;color:var(--dim);margin-top:6px">点击「开始检测」授权麦克风，然后正常说话</div>
+        </div>
+      </div>
+    </div>
+
     <div class="submit-section">
       <button class="btn-primary" id="startBtn" style="flex:1">准备面试</button>
       <span class="submit-hint">约 20~60 秒</span>
@@ -638,6 +651,7 @@ let lastAIBubble = null, pendingAI = null, msgCount = 0;
 let curStatus = '';
 const messages = []; // {role, text}
 const vad = { noise: 300, speech: 0, silence: 0, inUtt: false, uttFrames: 0, barge: 0 };
+let micTestActive = false, micLoudTs = 0;
 
 /* ================= Setup 交互 ================= */
 $('drop').onclick = () => $('resumeFile').click();
@@ -704,6 +718,8 @@ async function enterRoom() {
     $('timer').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
   }, 500);
   startCountdown(maxMinutes);
+  micTestActive = false; micLoudTs = 0;
+  const mtb = $('micTestBtn'); if (mtb) mtb.textContent = '开始检测';
   try { await initAudio(curDeviceId); } catch (e) { toast('麦克风初始化失败：' + e.message + '（可用文字输入继续）'); }
   connectWS();
 }
@@ -982,14 +998,21 @@ function setState(text, cls) {
 
 /* ================= 音频帧 / VAD ================= */
 function handleAudioFrame({ pcm, level }) {
-  if (!ws || ws.readyState !== 1) return;
+  // 音量显示（准备页检测 + 面试室），不依赖 WS
   if (level < vad.noise * 2) vad.noise = vad.noise * 0.96 + level * 0.04;
   const thr = Math.max(500, vad.noise * 2.5 + 80);
   const loud = level > thr;
-  // 音量条
-  const bars = $('vu').children;
   const h = Math.min(32, 4 + level / 260);
-  for (let i = 0; i < bars.length; i++) bars[i].style.height = (loud ? h * (0.6 + Math.random() * 0.7) : 4) + 'px';
+  const roomBars = $('vu')?.children;
+  if (roomBars) for (let i = 0; i < roomBars.length; i++) roomBars[i].style.height = (loud ? h * (0.6 + Math.random() * 0.7) : 4) + 'px';
+  if (micTestActive) {
+    const tb = $('micTestBars').children;
+    for (let i = 0; i < tb.length; i++) tb[i].style.height = (loud ? h * (0.6 + Math.random() * 0.7) : 3) + 'px';
+    if (loud) { micLoudTs = Date.now(); $('micTestStatus').textContent = '✅ 检测到声音 · 电平 ' + Math.round(level); $('micTestStatus').style.color = 'var(--ok)'; }
+    else if (Date.now() - micLoudTs > 4000 && micLoudTs) { $('micTestStatus').textContent = '⚠️ 近几秒没有检测到声音，请检查麦克风/系统输入音量'; $('micTestStatus').style.color = 'var(--warn)'; }
+  }
+  if (!ws || ws.readyState !== 1) return;
+  const bars = $('vu').children;
 
   if (!micOn) { if (engine !== 'live' && vad.inUtt) { vad.inUtt = false; ws.send(JSON.stringify({ type: 'utt_end' })); } return; }
 
@@ -1120,6 +1143,33 @@ function onAiDelta(text) {
 }
 
 /* ================= 控件 ================= */
+/* ================= 麦克风检测（准备页） ================= */
+$('micTestBtn').onclick = async () => {
+  if (micTestActive) {
+    micTestActive = false; micLoudTs = 0;
+    $('micTestBtn').textContent = '开始检测';
+    $('micTestStatus').textContent = '已停止检测';
+    $('micTestStatus').style.color = 'var(--dim)';
+    if (mediaStream) { mediaStream.getTracks().forEach((t) => t.stop()); mediaStream = null; }
+    if (srcNode) { try { srcNode.disconnect(); } catch {} srcNode = null; }
+    if (workletNode) { try { workletNode.disconnect(); } catch {} workletNode = null; }
+    return;
+  }
+  try {
+    $('micTestBtn').textContent = '停止';
+    $('micTestStatus').textContent = '请求麦克风权限…';
+    $('micTestStatus').style.color = 'var(--dim)';
+    micTestActive = true;
+    await initAudio(curDeviceId);
+    $('micTestStatus').textContent = '请正常说话，音量条应随之跳动…';
+  } catch (e) {
+    micTestActive = false;
+    $('micTestBtn').textContent = '开始检测';
+    $('micTestStatus').textContent = '❌ 麦克风不可用：' + e.message;
+    $('micTestStatus').style.color = 'var(--err)';
+  }
+};
+
 $('textSend').onclick = sendText;
 $('textInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendText(); });
 function sendText() {
