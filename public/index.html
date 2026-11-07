@@ -1301,7 +1301,7 @@ function showReport(m) {
     }
     $('dims').innerHTML = dims.map(([k, v]) =>
       `<div class="dimension-item"><div class="dimension-header"><span>${esc(k)}</span><span class="dimension-score">${v}</span></div><div class="dimension-bar"><div class="dimension-fill" data-w="${v}"></div></div></div>`).join('');
-    setTimeout(() => document.querySelectorAll('.dim-bar i').forEach((i) => (i.style.width = i.dataset.w + '%')), 120);
+    setTimeout(() => document.querySelectorAll('.dimension-fill, .dim-bar i').forEach((i) => (i.style.width = i.dataset.w + '%')), 120);
     const prev = loadHist()[0];
     const delta = (total != null && prev && prev.total != null) ? total - prev.total : null;
     if (delta != null) {
