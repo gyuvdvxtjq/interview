@@ -20,7 +20,8 @@ const CFG = {
   llmKey: process.env.LLM_KEY || '',
   llmModel: process.env.LLM_MODEL || 'cn:glm-5.3-flash',
   whisperUrl: process.env.WHISPER_URL || 'http://127.0.0.1:8081/inference',
-  mineruUrl: process.env.MINERU_URL || '', // 可选：自建 MinerU API（PDF 复杂排版/扫描件）
+  mineruUrl: process.env.MINERU_URL || '', // 可选：自建 MinerU API（优先于官方）
+  mineruKey: process.env.MINERU_KEY || '', // 可选：MinerU 官方 API Token（mineru.net）
   ttsVoice: process.env.TTS_VOICE || 'zh-CN-YunxiNeural', // 男声面试官（cascade 兜底用）
   geminiKey: process.env.GEMINI_KEY || '',
   geminiModel: process.env.GEMINI_MODEL || 'gemini-3.8-live',
@@ -282,17 +283,90 @@ function dossierPrompt(repoText, codeMode) {
   }
   return '你是面试官的助手。下面是候选人 GitHub 仓库的真实代码，请写一份"面谈前速记"，只输出 JSON（不要代码块以外的内容）：\n{\n  "projectSummary": "这个仓库解决什么业务问题、业务定位、技术栈，说人话，120字内",\n  "highlights": ["3-4 条值得当面聊的技术点（业务/架构层面）"],\n  "topics": [{"t": "值得验证的话题", "why": "为什么值得问（业务或风险角度）", "expect": "真做过的人能说出哪些具体内容"}],\n  "traps": ["容易注水的说法，3 条以内"]\n}\ntopics 给 3-5 个，全部用业务和架构语言，禁止出现任何文件名、函数名、行号。仓库代码：\n' + repoText;
 }
-async function mineruParse(buf, name) {
-  if (!CFG.mineruUrl) return null;
-  const fd = new FormData();
-  fd.append('files', new Blob([buf], { type: 'application/pdf' }), name || 'resume.pdf');
-  const res = await fetch(CFG.mineruUrl, { method: 'POST', body: fd, signal: AbortSignal.timeout(120000) });
-  if (!res.ok) throw new Error('MinerU HTTP ' + res.status);
-  const text = await res.text();
+async function mineruParseOfficial(buf, name) {
+  if (!CFG.mineruKey) return null;
+  const auth = { Authorization: 'Bearer ' + CFG.mineruKey };
+  const createRes = await fetch('https://mineru.net/api/v4/file-urls/batch', {
+    method: 'POST',
+    headers: { ...auth, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      files: [{ name: name || 'resume.pdf', data_id: 'resume' }],
+      model_version: 'vlm',
+      language: 'ch',
+      enable_table: true,
+      enable_formula: true,
+      is_ocr: true,
+    }),
+    signal: AbortSignal.timeout(20000),
+  });
+  const cj = await createRes.json().catch(() => null);
+  if (!cj || cj.code !== 0 || !cj.data) throw new Error('MinerU 创建任务失败: ' + ((cj && cj.msg) || createRes.status));
+  const batchId = cj.data.batch_id;
+  const putUrl = (cj.data.file_urls || [])[0];
+  if (!batchId || !putUrl) throw new Error('MinerU 未返回上传地址');
+  const putRes = await fetch(putUrl, { method: 'PUT', body: buf, signal: AbortSignal.timeout(60000) });
+  if (!putRes.ok) throw new Error('MinerU 上传失败 ' + putRes.status);
+
+  let zipUrl = '';
+  const t0 = Date.now();
+  while (Date.now() - t0 < 150000) {
+    await new Promise((r) => setTimeout(r, 3000));
+    const r = await fetch('https://mineru.net/api/v4/extract-results/batch/' + batchId, { headers: auth, signal: AbortSignal.timeout(15000) });
+    const j = await r.json().catch(() => null);
+    const item = j && j.data && j.data.extract_result && j.data.extract_result[0];
+    if (!item) continue;
+    if (item.state === 'failed') throw new Error('MinerU 解析失败: ' + (item.err_msg || 'unknown'));
+    if (item.state === 'done' && item.full_zip_url) { zipUrl = item.full_zip_url; break; }
+  }
+  if (!zipUrl) throw new Error('MinerU 解析超时');
+
+  const zr = await fetch(zipUrl, { signal: AbortSignal.timeout(60000) });
+  const zbuf = Buffer.from(await zr.arrayBuffer());
+  const stamp = Date.now();
+  const tmpZip = path.join(os.tmpdir(), 'mineru-' + stamp + '.zip');
+  const outDir = path.join(os.tmpdir(), 'mineru-' + stamp);
+  fs.writeFileSync(tmpZip, zbuf);
   try {
-    const j = JSON.parse(text);
-    return String(j.markdown || j.md || j.text || (j.data && j.data.markdown) || '').slice(0, 20000);
-  } catch { return text.slice(0, 20000); }
+    await new Promise((resolve, reject) => execFile('unzip', ['-o', tmpZip, '-d', outDir], (e) => (e ? reject(e) : resolve())));
+    let md = '';
+    (function walk(d) {
+      let ents = [];
+      try { ents = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
+      for (const f of ents) {
+        const fp = path.join(d, f.name);
+        if (f.isDirectory()) { walk(fp); continue; }
+        if (!/\.md$/i.test(f.name)) continue;
+        const txt = fs.readFileSync(fp, 'utf8');
+        if (f.name.toLowerCase() === 'full.md' || !md) md = txt;
+      }
+    })(outDir);
+    return md ? md.slice(0, 20000) : null;
+  } finally {
+    try { fs.rmSync(tmpZip, { force: true }); } catch {}
+    try { fs.rmSync(outDir, { recursive: true, force: true }); } catch {}
+  }
+}
+
+async function mineruParse(buf, name) {
+  // 1) 自建 MinerU 服务优先
+  if (CFG.mineruUrl) {
+    try {
+      const fd = new FormData();
+      fd.append('files', new Blob([buf], { type: 'application/pdf' }), name || 'resume.pdf');
+      const res = await fetch(CFG.mineruUrl, { method: 'POST', body: fd, signal: AbortSignal.timeout(120000) });
+      if (res.ok) {
+        const text = await res.text();
+        try {
+          const j = JSON.parse(text);
+          const md = j.markdown || j.md || j.text || (j.data && j.data.markdown);
+          if (md) return String(md).slice(0, 20000);
+        } catch { return text.slice(0, 20000); }
+      }
+    } catch (e) { console.log('[mineru-self] ' + e.message); }
+  }
+  // 2) 官方 API
+  if (CFG.mineruKey) return mineruParseOfficial(buf, name);
+  return null;
 }
 
 async function buildDossier(session, repoText) {
